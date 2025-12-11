@@ -1,0 +1,20 @@
+{
+    "app": {
+        "name": "SynaptiQuiz",
+        "description": "Multiplayer Quiz Game"
+    },
+    "auth": {
+        "login": "Login",
+        "username": "Username",
+        "loginWithGoogle": "Login with Google",
+        "logout": "Logout"
+    },
+    "common": {
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "create": "Create",
+        "loading": "Loading..."
+    }
+}
