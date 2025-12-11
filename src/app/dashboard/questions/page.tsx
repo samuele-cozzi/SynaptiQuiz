@@ -217,8 +217,8 @@ export default function QuestionsPage() {
                                     type="number"
                                     min="1" max="5"
                                     className="w-full rounded-lg border border-gray-300 p-2.5 text-sm"
-                                    value={formData.difficulty}
-                                    onChange={e => setFormData({ ...formData, difficulty: parseInt(e.target.value) as 1 | 2 | 3 | 4 | 5 })}
+                                    value={formData.difficulty || ''}
+                                    onChange={e => setFormData({ ...formData, difficulty: parseInt(e.target.value) as 1 | 2 | 3 | 4 | 5 || 0 })}
                                 />
                             </div>
                         </div>
