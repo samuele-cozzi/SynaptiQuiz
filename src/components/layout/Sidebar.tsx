@@ -14,7 +14,8 @@ import {
     Menu,
     X,
     BrainCircuit,
-    LayoutDashboard
+    LayoutDashboard,
+    Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +33,7 @@ export function Sidebar() {
         { name: 'Players', href: '/dashboard/players', icon: Users },
         { name: 'Questions', href: '/dashboard/questions', icon: HelpCircle },
         { name: 'Topics', href: '/dashboard/topics', icon: Tags },
+        { name: 'Settings', href: '/dashboard/settings', icon: Settings },
         // { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: Trophy },
     ];
 
