@@ -1,15 +1,14 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, updateDoc, arrayUnion, increment, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, arrayUnion, increment, getDoc } from 'firebase/firestore';
 import { Game, Player, Question, Answer } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { useParams } from 'next/navigation';
-import { CheckCircle, XCircle, Trophy, Clock, User } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { useSearchParams } from 'next/navigation';
+import { CheckCircle, Trophy } from 'lucide-react';
 
 const POINTS_MAP: Record<number, number> = {
     1: 10,
@@ -19,8 +18,10 @@ const POINTS_MAP: Record<number, number> = {
     5: 150
 };
 
-export default function GamePlayPage() {
-    const { id: gameId } = useParams() as { id: string };
+function GameContent() {
+    const searchParams = useSearchParams();
+    const gameId = searchParams.get('id');
+
     const { player: currentUser } = useAuth();
 
     const [game, setGame] = useState<Game | null>(null);
@@ -117,6 +118,7 @@ export default function GamePlayPage() {
         await updateDoc(doc(db, 'games', game.id), updates);
     };
 
+    if (!gameId) return <div className="p-8">No Game ID provided</div>;
     if (loading || !game) return <div className="flex justify-center p-8"><span className="loading">Loading Arena...</span></div>;
 
     // VIEW: COMPLETED - LEADERBOARD
@@ -310,5 +312,13 @@ export default function GamePlayPage() {
                 })}
             </div>
         </div>
+    );
+}
+
+export default function GamePlayPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center p-8"><span className="loading">Loading Game...</span></div>}>
+            <GameContent />
+        </Suspense>
     );
 }

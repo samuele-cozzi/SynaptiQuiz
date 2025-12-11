@@ -114,8 +114,8 @@ export default function GamesPage() {
                                 <TableCell className="font-mono text-xs">{g.id}</TableCell>
                                 <TableCell>
                                     <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${g.status === 'COMPLETED' ? 'bg-gray-100 text-gray-800' :
-                                            g.status === 'IN_PROGRESS' ? 'bg-green-100 text-green-800' :
-                                                'bg-blue-100 text-blue-800'
+                                        g.status === 'IN_PROGRESS' ? 'bg-green-100 text-green-800' :
+                                            'bg-blue-100 text-blue-800'
                                         }`}>
                                         {g.status}
                                     </span>
@@ -123,7 +123,7 @@ export default function GamesPage() {
                                 <TableCell>{g.playerIds.length}</TableCell>
                                 <TableCell>{g.questionIds.length}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button size="sm" variant="outline" onClick={() => router.push(`/dashboard/games/${g.id}`)}>
+                                    <Button size="sm" variant="outline" onClick={() => router.push(`/dashboard/play?id=${g.id}`)}>
                                         {g.status === 'CREATED' ? <Play className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
                                         {g.status === 'CREATED' ? 'Start' : 'View'}
                                     </Button>
