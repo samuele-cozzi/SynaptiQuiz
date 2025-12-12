@@ -8,7 +8,8 @@ import { Game, Player, Question } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { Plus, Play, Eye } from 'lucide-react';
+import { Plus, Play, Eye, Copy, Search } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
 import { useRouter } from 'next/navigation';
 
 function generateId() {
@@ -21,6 +22,7 @@ export default function GamesPage() {
     const [players, setPlayers] = useState<Player[]>([]);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [playerSearch, setPlayerSearch] = useState('');
     const router = useRouter();
 
     const [formData, setFormData] = useState<{
@@ -85,6 +87,19 @@ export default function GamesPage() {
         } catch (e) { console.error(e); }
     };
 
+    const handleDuplicate = (game: Game) => {
+        setFormData({
+            selectedPlayers: currentUser ? [currentUser.id] : [],
+            selectedQuestions: game.questionIds
+        });
+        setPlayerSearch('');
+        setIsModalOpen(true);
+    };
+
+    const filteredPlayers = players.filter(p =>
+        p.username.toLowerCase().includes(playerSearch.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -127,6 +142,9 @@ export default function GamesPage() {
                                         {g.status === 'CREATED' ? <Play className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
                                         {g.status === 'CREATED' ? 'Start' : 'View'}
                                     </Button>
+                                    <Button size="sm" variant="ghost" onClick={() => handleDuplicate(g)} title="Duplicate Game">
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -142,8 +160,16 @@ export default function GamesPage() {
                 <div className="space-y-6">
                     <div>
                         <h3 className="text-sm font-medium mb-2">Select Players ({formData.selectedPlayers.length})</h3>
+                        <div className="mb-2">
+                            <Input
+                                placeholder="Filter players..."
+                                value={playerSearch}
+                                onChange={(e) => setPlayerSearch(e.target.value)}
+                                icon={<Search className="h-4 w-4 text-gray-400" />}
+                            />
+                        </div>
                         <div className="max-h-40 overflow-y-auto border rounded p-2 space-y-1">
-                            {players.map(p => (
+                            {filteredPlayers.map(p => (
                                 <label key={p.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
                                     <input
                                         type="checkbox"

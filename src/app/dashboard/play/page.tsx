@@ -173,9 +173,6 @@ function GameContent() {
                                                 </span>
                                             </div>
                                             <p className="text-gray-600 mt-1">{q?.text}</p>
-                                            <div className="mt-1 text-xs text-gray-400">
-                                                Correct: <span className="text-green-600">{corrAns}</span>
-                                            </div>
                                         </div>
                                     )
                                 })}
