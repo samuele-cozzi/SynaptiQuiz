@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -18,6 +19,7 @@ function generateId() {
 
 export default function TopicsPage() {
     const { player: currentUser } = useAuth();
+    const router = useRouter();
     const [topics, setTopics] = useState<Topic[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -104,7 +106,11 @@ export default function TopicsPage() {
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {topics.map((topic) => (
-                    <Card key={topic.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
+                    <Card
+                        key={topic.id}
+                        className="overflow-hidden group hover:shadow-lg transition-shadow cursor-pointer"
+                        onClick={() => router.push(`/dashboard/topics/${topic.id}`)}
+                    >
                         <div className="aspect-video w-full bg-gray-100 relative">
                             {topic.imageUrl ? (
                                 <img src={topic.imageUrl} alt={topic.text} className="h-full w-full object-cover" />
@@ -115,10 +121,10 @@ export default function TopicsPage() {
                             )}
                             {currentUser?.isAdmin && (
                                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                                    <Button size="sm" variant="secondary" onClick={() => handleOpenEdit(topic)}>
+                                    <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); handleOpenEdit(topic); }}>
                                         <Edit2 className="h-3 w-3" />
                                     </Button>
-                                    <Button size="sm" variant="danger" onClick={() => handleDelete(topic.id)}>
+                                    <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); handleDelete(topic.id); }}>
                                         <Trash2 className="h-3 w-3" />
                                     </Button>
                                 </div>

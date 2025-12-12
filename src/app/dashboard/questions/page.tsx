@@ -43,6 +43,18 @@ export default function QuestionsPage() {
         answers: [...INITIAL_ANSWERS]
     });
 
+    // Filters
+    const [filterText, setFilterText] = useState('');
+    const [filterTopic, setFilterTopic] = useState('');
+    const [filterDifficulty, setFilterDifficulty] = useState('');
+
+    const filteredQuestions = questions.filter(q => {
+        const matchesText = q.text.toLowerCase().includes(filterText.toLowerCase());
+        const matchesTopic = filterTopic ? q.topicId === filterTopic : true;
+        const matchesDifficulty = filterDifficulty ? q.difficulty === parseInt(filterDifficulty) : true;
+        return matchesText && matchesTopic && matchesDifficulty;
+    });
+
     const { t } = useTranslation('common');
 
     useEffect(() => {
@@ -152,6 +164,40 @@ export default function QuestionsPage() {
                 )}
             </div>
 
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Search Question</label>
+                    <Input
+                        placeholder="Search text..."
+                        value={filterText}
+                        onChange={(e) => setFilterText(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Topic</label>
+                    <select
+                        className="w-full rounded-lg border border-gray-300 p-2.5 text-sm"
+                        value={filterTopic}
+                        onChange={(e) => setFilterTopic(e.target.value)}
+                    >
+                        <option value="">All Topics</option>
+                        {topics.map(t => <option key={t.id} value={t.id}>{t.text}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Difficulty</label>
+                    <select
+                        className="w-full rounded-lg border border-gray-300 p-2.5 text-sm"
+                        value={filterDifficulty}
+                        onChange={(e) => setFilterDifficulty(e.target.value)}
+                    >
+                        <option value="">All Difficulties</option>
+                        {[1, 2, 3, 4, 5].map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                </div>
+            </div>
+
             <div className="bg-white rounded-lg border border-gray-200">
                 <Table>
                     <TableHeader>
@@ -163,7 +209,7 @@ export default function QuestionsPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {questions.map(q => (
+                        {filteredQuestions.map(q => (
                             <TableRow key={q.id}>
                                 <TableCell className="max-w-md truncate font-medium">{q.text}</TableCell>
                                 <TableCell>{topics.find(t => t.id === q.topicId)?.text || 'Unknown'}</TableCell>
