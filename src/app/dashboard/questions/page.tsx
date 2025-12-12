@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { Plus, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle2, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 function generateId() {
@@ -157,10 +157,16 @@ export default function QuestionsPage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">Questions Management</h1>
                 {currentUser?.isAdmin && (
-                    <Button onClick={handleOpenCreate}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Question
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => window.location.href = '/dashboard/questions/generate'}>
+                            <Sparkles className="mr-2 h-4 w-4 text-purple-600" />
+                            Generate with AI
+                        </Button>
+                        <Button onClick={handleOpenCreate}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Question
+                        </Button>
+                    </div>
                 )}
             </div>
 
