@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { Game } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { Plus, Play, Eye, Copy } from 'lucide-react';
+import { Plus, Play, Eye, Copy, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function GamesPage() {
@@ -40,6 +40,18 @@ export default function GamesPage() {
         };
         fetchData();
     }, [currentUser]);
+
+    const deleteGame = async (gameId: string) => {
+        if (!confirm('Are you sure you want to delete this game? This action cannot be undone.')) return;
+
+        try {
+            await deleteDoc(doc(db, 'games', gameId));
+            setGames(prev => prev.filter(g => g.id !== gameId));
+        } catch (error) {
+            console.error('Error deleting game:', error);
+            alert('Failed to delete game');
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -130,6 +142,18 @@ export default function GamesPage() {
                                         <Button size="sm" variant="ghost" onClick={() => router.push(`/dashboard/games/create?duplicate=${g.id}`)} title="Duplicate Game">
                                             <Copy className="h-4 w-4" />
                                         </Button>
+
+                                        {currentUser?.isAdmin && (
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                onClick={() => deleteGame(g.id)}
+                                                title="Delete Game"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        )}
                                     </div>
                                 </TableCell>
                             </TableRow>
