@@ -17,10 +17,11 @@ export default function LoginPage() {
   const { t } = useTranslation('common');
 
   useEffect(() => {
-    if (player) {
+    if (!loading && player) {
+      console.log("LoginPage: Redirecting to dashboard (player exists)", player.id);
       router.push('/dashboard');
     }
-  }, [player, router]);
+  }, [player, loading, router]);
 
   const handleUsernameLogin = async (e: React.FormEvent) => {
     e.preventDefault();

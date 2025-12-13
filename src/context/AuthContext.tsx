@@ -48,10 +48,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            console.log("AuthContext: Auth State Changed", firebaseUser?.uid);
             setUser(firebaseUser);
             if (firebaseUser) {
                 // If logged in, find the associated player
-                await fetchPlayerProfile(firebaseUser);
+                try {
+                    await fetchPlayerProfile(firebaseUser);
+                } catch (err) {
+                    console.error("AuthContext: Failed to fetch player", err);
+                    setPlayer(null); // Ensure no stale state
+                }
             } else {
                 setPlayer(null);
             }

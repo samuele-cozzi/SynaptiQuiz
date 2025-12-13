@@ -11,6 +11,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     React.useEffect(() => {
         if (!loading && !player) {
+            console.log("DashboardLayout: Redirecting to login (no player found)");
             router.push('/');
         }
     }, [player, loading, router]);
