@@ -23,12 +23,12 @@ export default function GenerateQuestionsPage() {
 
     const [files, setFiles] = useState<{
         topicId: string;
-        difficulty: number;
+        difficulties: number[];
         count: number;
         answersCount: number;
     }>({
         topicId: '',
-        difficulty: 3,
+        difficulties: [3],
         count: 5,
         answersCount: 4
     });
@@ -44,6 +44,7 @@ export default function GenerateQuestionsPage() {
 
     const handleGenerate = async () => {
         if (!files.topicId) return alert('Select a Topic');
+        if (files.difficulties.length === 0) return alert('Select at least one difficulty level');
 
         const selectedTopic = topics.find(t => t.id === files.topicId);
         if (!selectedTopic) return;
@@ -58,14 +59,23 @@ export default function GenerateQuestionsPage() {
                 body: JSON.stringify({
                     topicId: files.topicId,
                     topicText: selectedTopic.text,
-                    difficulty: files.difficulty,
+                    difficulties: files.difficulties,
                     count: files.count,
                     answersCount: files.answersCount
                 })
             });
 
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
+
+            if (!response.ok) {
+                // If it's a rate limit error, show a more specific/helpful message if available
+                if (response.status === 429) {
+                    setResultMessage(`⚠️ ${data.error || 'Daily limit reached. Please try again later.'}`);
+                } else {
+                    throw new Error(data.error || 'Failed to generate questions');
+                }
+                return; // Stop here
+            }
 
             setResultMessage(`Success! Generated ${data.count} questions.`);
             // Optional: Redirect after success? 
@@ -76,6 +86,18 @@ export default function GenerateQuestionsPage() {
         } finally {
             setGenerating(false);
         }
+    };
+
+    const toggleDifficulty = (level: number) => {
+        setFiles(prev => {
+            const exists = prev.difficulties.includes(level);
+            if (exists) {
+                // Don't allow deselecting the last one? Or just handle empty in validation (done above)
+                return { ...prev, difficulties: prev.difficulties.filter(d => d !== level) };
+            } else {
+                return { ...prev, difficulties: [...prev.difficulties, level].sort() };
+            }
+        });
     };
 
     if (loading) return <div className="p-8">Loading...</div>;
@@ -107,24 +129,35 @@ export default function GenerateQuestionsPage() {
                     </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty (1-5)</label>
-                        <select
-                            className="w-full rounded-lg border border-gray-300 p-2.5 text-sm"
-                            value={files.difficulty}
-                            onChange={(e) => setFiles({ ...files, difficulty: parseInt(e.target.value) })}
-                        >
-                            {[1, 2, 3, 4, 5].map(d => (
-                                <option key={d} value={d}>Level {d}</option>
-                            ))}
-                        </select>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty Levels (Select multiple)</label>
+                    <div className="flex flex-wrap gap-2">
+                        {[1, 2, 3, 4, 5].map(level => {
+                            const isSelected = files.difficulties.includes(level);
+                            return (
+                                <button
+                                    key={level}
+                                    onClick={() => toggleDifficulty(level)}
+                                    className={`
+                                        w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors
+                                        ${isSelected
+                                            ? 'bg-indigo-600 text-white shadow-md scale-105'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
+                                    `}
+                                >
+                                    {level}
+                                </button>
+                            );
+                        })}
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                        Select one or more levels. Questions will be generated for each selected level.
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Number of Questions</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Questions per Level</label>
                         <Input
                             type="number"
                             min={1}
@@ -132,6 +165,9 @@ export default function GenerateQuestionsPage() {
                             value={files.count}
                             onChange={(e) => setFiles({ ...files, count: parseInt(e.target.value) })}
                         />
+                        <p className="text-xs text-gray-500 mt-1">
+                            Total: {files.count * files.difficulties.length} questions
+                        </p>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Answers per Question</label>
@@ -154,7 +190,7 @@ export default function GenerateQuestionsPage() {
                 <Button
                     onClick={handleGenerate}
                     className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-                    disabled={generating || !files.topicId}
+                    disabled={generating || !files.topicId || files.difficulties.length === 0}
                 >
                     {generating ? (
                         <>

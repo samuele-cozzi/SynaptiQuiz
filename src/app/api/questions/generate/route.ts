@@ -13,27 +13,33 @@ function generateId() {
 
 export async function POST(req: NextRequest) {
     try {
-        const { topicId, topicText, difficulty, count, answersCount } = await req.json();
+        const { topicId, topicText, difficulties, count, answersCount } = await req.json();
 
         // Validation
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
         }
-        if (!topicId || !topicText || !count) {
+        if (!topicId || !topicText || !difficulties || !difficulties.length || !count) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const totalQuestions = count * difficulties.length;
 
         const prompt = `
-        Generate ${count} multiple choice quiz questions about "${topicText}".
-        Difficulty Level: ${difficulty} (on a scale of 1-5).
-        Each question must have exactly ${answersCount} answer options.
+        Generate ${totalQuestions} multiple choice quiz questions about "${topicText}".
+        
+        Requirements:
+        - Generate exactly ${count} questions for EACH of the following difficulty levels: ${difficulties.join(', ')}.
+        - Difficulty scale is 1-5.
+        - Each question must have exactly ${answersCount} answer options.
+        
         Example JSON format:
         [
           {
             "text": "Question text here?",
-            "difficulty": ${difficulty},
+            "difficulty": 3,
             "answers": [
                { "text": "Answer 1", "correct": false, "plausibility": 50 },
                { "text": "Correct Answer", "correct": true, "plausibility": 100 }
@@ -66,11 +72,16 @@ export async function POST(req: NextRequest) {
         const batch = [];
         for (const qData of questionsData) {
             const id = generateId();
+            // Ensure difficulty is valid, otherwise default to first selected
+            const diff = qData.difficulty && difficulties.includes(qData.difficulty)
+                ? qData.difficulty
+                : difficulties[0];
+
             const question: Question = {
                 id,
                 topicId,
                 text: qData.text,
-                difficulty: qData.difficulty || difficulty, // Fallback
+                difficulty: diff,
                 answers: qData.answers
             };
             // Note: Parallel writes or batch would be better, but loop is fine for small counts
@@ -82,6 +93,15 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("Generate error:", error);
+
+        // Handle Rate Limits specifically
+        if (error.message?.includes('429') || error.message?.includes('quota')) {
+            return NextResponse.json({
+                error: 'AI Rate limit exceeded. Please wait a minute and try again. (Free Tier Limit)',
+                isRateLimit: true
+            }, { status: 429 });
+        }
+
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
