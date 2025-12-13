@@ -45,7 +45,7 @@ export default function GamesPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">Games</h1>
-                {currentUser?.isAdmin && (
+                {currentUser?.isAdmin && (currentUser?.isEnabled ?? true) && (
                     <Button onClick={() => router.push('/dashboard/games/create')}>
                         <Plus className="mr-2 h-4 w-4" />
                         New Game
@@ -118,13 +118,19 @@ export default function GamesPage() {
                                 <TableCell>{g.playerIds.length}</TableCell>
                                 <TableCell>{g.questionIds.length}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button size="sm" variant="outline" onClick={() => router.push(`/dashboard/play?id=${g.id}`)}>
-                                        {g.status === 'CREATED' ? <Play className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
-                                        {g.status === 'CREATED' ? 'Start' : 'View'}
-                                    </Button>
-                                    <Button size="sm" variant="ghost" onClick={() => router.push(`/dashboard/games/create?duplicate=${g.id}`)} title="Duplicate Game">
-                                        <Copy className="h-4 w-4" />
-                                    </Button>
+                                    <div className="flex justify-end gap-2">
+                                        {/* Show play/view button if user is a player in this game */}
+                                        {currentUser && g.playerIds.includes(currentUser.id) && (
+                                            <Button size="sm" variant="outline" onClick={() => router.push(`/dashboard/play?id=${g.id}`)}>
+                                                {g.status === 'CREATED' ? <Play className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
+                                                {g.status === 'CREATED' ? 'Start' : 'View'}
+                                            </Button>
+                                        )}
+                                        {/* Show duplicate button for all users */}
+                                        <Button size="sm" variant="ghost" onClick={() => router.push(`/dashboard/games/create?duplicate=${g.id}`)} title="Duplicate Game">
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}

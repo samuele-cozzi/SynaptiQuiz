@@ -186,14 +186,13 @@ function GameContent() {
 
     // VIEW: PRE-GAME
     if (game.status === 'CREATED') {
+        const isPlayerInGame = currentUser && game.playerIds.includes(currentUser.id);
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
                 <h1 className="text-2xl font-bold">Waiting to start...</h1>
                 <p>Players joined: {game.playerIds.map(pid => players[pid]?.username).join(', ')}</p>
-                {currentUser?.isAdmin ? (
-                    <Button size="lg" onClick={handleStartGame}> Start Game </Button>
-                ) : (
-                    <p className="text-gray-500 animate-pulse">Waiting for admin to start...</p>
+                {isPlayerInGame && (
+                    <Button size="lg" onClick={handleStartGame}>Start Game</Button>
                 )}
             </div>
         )

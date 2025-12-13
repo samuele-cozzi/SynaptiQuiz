@@ -34,21 +34,14 @@ export function Sidebar() {
         { name: 'Questions', href: '/dashboard/questions', icon: HelpCircle },
         { name: 'Topics', href: '/dashboard/topics', icon: Tags },
         { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-        // { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: Trophy },
     ];
 
-    const adminOnly = ['Players', 'Questions', 'Topics', 'Games'];
+    const adminOnly = ['Players'];
 
     const filteredNav = navigation.filter(item => {
-        if (adminOnly.includes(item.name) && !player?.isAdmin && item.name !== 'Games') {
-            // Games might be viewable by everyone, but let's assume management is admin initially? 
-            // Actually "Games, where user can manage games" usually implies admin or creation.
-            // Let's hide specific management tabs if not admin, but careful with requirements.
-            // Requirements say: "After login in a page the user can choose between: Players, Questions, Topics, Games"
-            // It doesn't explicitly say ONLY admin, but "The first player is an admin... The admin can create a game".
-            // I'll show all links for now but handle permission inside or just show for clarity.
-            // Let's assume for now everyone sees them but actions are restricted.
-            return true;
+        // Hide admin-only pages for non-admin users
+        if (adminOnly.includes(item.name) && !player?.isAdmin) {
+            return false;
         }
         return true;
     });

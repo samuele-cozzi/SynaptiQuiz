@@ -96,7 +96,7 @@ export default function TopicsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">Topics Management</h1>
-                {currentUser?.isAdmin && (
+                {currentUser?.isAdmin && (currentUser?.isEnabled ?? true) && (
                     <Button onClick={handleOpenCreate}>
                         <Plus className="mr-2 h-4 w-4" />
                         Add Topic
@@ -119,12 +119,12 @@ export default function TopicsPage() {
                                     <ImageIcon className="h-10 w-10" />
                                 </div>
                             )}
-                            {currentUser?.isAdmin && (
+                            {currentUser?.isAdmin && (currentUser?.isEnabled ?? true) && (
                                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                                    <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); handleOpenEdit(topic); }}>
+                                    <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); handleOpenEdit(topic); }}>
                                         <Edit2 className="h-3 w-3" />
                                     </Button>
-                                    <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); handleDelete(topic.id); }}>
+                                    <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600" onClick={(e) => { e.stopPropagation(); handleDelete(topic.id); }}>
                                         <Trash2 className="h-3 w-3" />
                                     </Button>
                                 </div>

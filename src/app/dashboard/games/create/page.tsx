@@ -51,7 +51,7 @@ function CreateGameContent() {
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!currentUser?.isAdmin) return;
+            if (!currentUser?.isAdmin || !(currentUser?.isEnabled ?? true)) return;
 
             try {
                 const [pSnap, qSnap, tSnap] = await Promise.all([

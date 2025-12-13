@@ -170,7 +170,7 @@ export default function TopicDetailClient() {
                                     <TableHead>Question</TableHead>
                                     <TableHead>Difficulty</TableHead>
                                     <TableHead>Answers</TableHead>
-                                    {currentUser?.isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                                    {currentUser?.isAdmin && (currentUser?.isEnabled ?? true) && <TableHead className="text-right">Actions</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -188,7 +188,7 @@ export default function TopicDetailClient() {
                                         <TableCell className="text-gray-500 text-sm">
                                             {q.answers.length} options
                                         </TableCell>
-                                        {currentUser?.isAdmin && (
+                                        {currentUser?.isAdmin && (currentUser?.isEnabled ?? true) && (
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
                                                     <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(q)}>

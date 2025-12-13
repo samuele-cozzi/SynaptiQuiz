@@ -3,6 +3,7 @@ export type Player = {
     username: string;
     avatarUrl?: string; // Optional, can be auto-generated or from Google
     isAdmin: boolean;
+    isEnabled?: boolean; // Optional for migration, defaults to true for existing players
     email?: string; // Optional, for Google auth tracking
     createdAt: number;
 };
