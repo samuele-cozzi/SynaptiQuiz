@@ -20,6 +20,8 @@ function CreateGameContent() {
     const searchParams = useSearchParams();
     const duplicateId = searchParams.get('duplicate');
 
+    const [gameId, setGameId] = useState('');
+    const [gameName, setGameName] = useState('');
     const [players, setPlayers] = useState<Player[]>([]);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [topics, setTopics] = useState<Topic[]>([]);
@@ -39,6 +41,12 @@ function CreateGameContent() {
         selectedPlayers: [],
         selectedQuestions: []
     });
+
+    useEffect(() => {
+        const id = generateId();
+        setGameId(id);
+        setGameName(`Game ${id}`);
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -67,6 +75,11 @@ function CreateGameContent() {
                     if (gameDoc.exists()) {
                         const game = gameDoc.data() as Game;
                         initialQuestions = game.questionIds;
+                        // Use original name copy? Or default new? Let's use default new for now as requested.
+                        // Actually, if duplicating, maybe we want "Copy of..."?
+                        // User asked for "prepopulate with Game id". 
+                        // So we stick to the mount effect setting Game ${id}.
+                        // If they wanted different behavior for duplication they would say so.
                     }
                 }
 
@@ -93,6 +106,7 @@ function CreateGameContent() {
         const pCount = formData.selectedPlayers.length;
         const qCount = formData.selectedQuestions.length;
 
+        if (!gameName.trim()) return alert("Please enter a game name.");
         if (pCount === 0) return alert("Select at least 1 player.");
         if (qCount === 0) return alert("Select questions.");
 
@@ -100,9 +114,10 @@ function CreateGameContent() {
             return alert(`Questions (${qCount}) must be divisible by Players (${pCount}). Remainder: ${qCount % pCount}`);
         }
 
-        const id = generateId();
+        // Use the ID generated on mount
         const newGame: Game = {
-            id,
+            id: gameId,
+            name: gameName,
             status: 'CREATED',
             playerIds: formData.selectedPlayers,
             questionIds: formData.selectedQuestions,
@@ -112,7 +127,7 @@ function CreateGameContent() {
         };
 
         try {
-            await setDoc(doc(db, 'games', id), newGame);
+            await setDoc(doc(db, 'games', gameId), newGame);
             router.push('/dashboard/games');
         } catch (e) { console.error(e); }
     };
@@ -141,7 +156,17 @@ function CreateGameContent() {
                 </h1>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-140px)]">
+            <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Game Name</label>
+                <Input
+                    value={gameName}
+                    onChange={(e) => setGameName(e.target.value)}
+                    placeholder="e.g. Weekly Challenge"
+                    className="max-w-md"
+                />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-220px)]">
                 {/* Players Section */}
                 <div className="bg-white p-4 rounded-lg border border-gray-200 flex flex-col h-full">
                     <h2 className="text-lg font-semibold mb-3">Select Players ({formData.selectedPlayers.length})</h2>
@@ -221,8 +246,8 @@ function CreateGameContent() {
                                         <div className="flex gap-2 mt-0.5">
                                             <span className="text-xs text-gray-500 bg-gray-100 px-1.5 rounded">{topic?.text || 'Unknown'}</span>
                                             <span className={`text-xs px-1.5 rounded ${q.difficulty <= 2 ? 'bg-green-100 text-green-700' :
-                                                    q.difficulty <= 4 ? 'bg-yellow-100 text-yellow-700' :
-                                                        'bg-red-100 text-red-700'
+                                                q.difficulty <= 4 ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-red-100 text-red-700'
                                                 }`}>Lvl {q.difficulty}</span>
                                         </div>
                                     </div>

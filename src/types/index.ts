@@ -31,6 +31,7 @@ export type GameStatus = 'CREATED' | 'IN_PROGRESS' | 'COMPLETED';
 
 export type Game = {
     id: string;
+    name?: string; // New field
     status: GameStatus;
     playerIds: string[];
     questionIds: string[];

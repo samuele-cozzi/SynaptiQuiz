@@ -41,6 +41,7 @@ export default function GamesPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Game ID</TableHead>
+                            <TableHead>Name</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Players</TableHead>
                             <TableHead>Questions</TableHead>
@@ -51,6 +52,7 @@ export default function GamesPage() {
                         {games.map(g => (
                             <TableRow key={g.id}>
                                 <TableCell className="font-mono text-xs">{g.id}</TableCell>
+                                <TableCell className="font-medium">{g.name || '-'}</TableCell>
                                 <TableCell>
                                     <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${g.status === 'COMPLETED' ? 'bg-gray-100 text-gray-800' :
                                         g.status === 'IN_PROGRESS' ? 'bg-green-100 text-green-800' :
