@@ -87,34 +87,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const fetchPlayerProfile = async (firebaseUser: User) => {
+        console.log("AuthContext: fetchPlayerProfile started for", firebaseUser.uid);
         // 1. Try to find player by Auth ID (direct linkage)
         const playerDocRef = doc(db, 'players', firebaseUser.uid);
-        const playerDoc = await getDoc(playerDocRef);
+        try {
+            const playerDoc = await getDoc(playerDocRef);
+            console.log("AuthContext: Player doc exists?", playerDoc.exists());
 
-        if (playerDoc.exists()) {
-            setPlayer(playerDoc.data() as Player);
-        } else {
-            // If no player doc exists for this UID, we might need to create it (Google Auth does this)
-            // BUT for Username auth, we handle it inside loginWithUsername usually.
-            // If we are here via Google Auth and it's 1st time:
-            if (!playerDoc.exists() && !firebaseUser.isAnonymous) {
-                // Create new player for Google User
-                const playersRef = collection(db, 'players');
-                const q = query(playersRef);
-                const snapshot = await getDocs(q);
-                const isFirstPlayer = snapshot.empty;
+            if (playerDoc.exists()) {
+                console.log("AuthContext: Player found, setting state.");
+                setPlayer(playerDoc.data() as Player);
+            } else {
+                console.log("AuthContext: Player doc missing. Is Anonymous?", firebaseUser.isAnonymous);
+                // If no player doc exists for this UID, we might need to create it (Google Auth does this)
+                // BUT for Username auth, we handle it inside loginWithUsername usually.
+                // If we are here via Google Auth and it's 1st time:
+                if (!playerDoc.exists() && !firebaseUser.isAnonymous) {
+                    console.log("AuthContext: Creating new player for Google User...");
+                    // Create new player for Google User
+                    const playersRef = collection(db, 'players');
+                    const q = query(playersRef);
+                    const snapshot = await getDocs(q);
+                    const isFirstPlayer = snapshot.empty;
 
-                const newPlayer: Player = {
-                    id: firebaseUser.uid,
-                    username: firebaseUser.displayName || 'Player',
-                    avatarUrl: firebaseUser.photoURL || '',
-                    isAdmin: isFirstPlayer, // First player is admin logic
-                    email: firebaseUser.email || undefined,
-                    createdAt: Date.now(),
-                };
-                await setDoc(playerDocRef, newPlayer);
-                setPlayer(newPlayer);
+                    const newPlayer: Player = {
+                        id: firebaseUser.uid,
+                        username: firebaseUser.displayName || 'Player',
+                        avatarUrl: firebaseUser.photoURL || '',
+                        isAdmin: isFirstPlayer, // First player is admin logic
+                        email: firebaseUser.email || undefined,
+                        createdAt: Date.now(),
+                    };
+                    await setDoc(playerDocRef, newPlayer);
+                    console.log("AuthContext: New player created.");
+                    setPlayer(newPlayer);
+                } else {
+                    console.log("AuthContext: Skipping player creation (Anonymous or handled elsewhere).");
+                }
             }
+        } catch (error) {
+            console.error("AuthContext: Error reading/writing player profile:", error);
+            throw error;
         }
     };
 
