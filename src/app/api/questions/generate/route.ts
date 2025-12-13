@@ -13,7 +13,7 @@ function generateId() {
 
 export async function POST(req: NextRequest) {
     try {
-        const { topicId, topicText, difficulties, count, answersCount } = await req.json();
+        const { topicId, topicText, difficulties, count, answersCount, language } = await req.json();
 
         // Validation
         if (!process.env.GEMINI_API_KEY) {
@@ -26,14 +26,16 @@ export async function POST(req: NextRequest) {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const totalQuestions = count * difficulties.length;
+        const langText = language === 'it' ? 'Italian' : 'English';
 
         const prompt = `
-        Generate ${totalQuestions} multiple choice quiz questions about "${topicText}".
+        Generate ${totalQuestions} multiple choice quiz questions about "${topicText}" in ${langText}.
         
         Requirements:
         - Generate exactly ${count} questions for EACH of the following difficulty levels: ${difficulties.join(', ')}.
         - Difficulty scale is 1-5.
         - Each question must have exactly ${answersCount} answer options.
+        - The questions and answers must be in ${langText}.
         
         Example JSON format:
         [
@@ -82,7 +84,8 @@ export async function POST(req: NextRequest) {
                 topicId,
                 text: qData.text,
                 difficulty: diff,
-                answers: qData.answers
+                answers: qData.answers,
+                language: language || 'en'
             };
             // Note: Parallel writes or batch would be better, but loop is fine for small counts
             await setDoc(doc(db, 'questions', id), question);

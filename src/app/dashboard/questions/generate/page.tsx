@@ -26,11 +26,13 @@ export default function GenerateQuestionsPage() {
         difficulties: number[];
         count: number;
         answersCount: number;
+        language: 'en' | 'it';
     }>({
         topicId: '',
         difficulties: [3],
         count: 5,
-        answersCount: 4
+        answersCount: 4,
+        language: 'en'
     });
 
     useEffect(() => {
@@ -61,7 +63,8 @@ export default function GenerateQuestionsPage() {
                     topicText: selectedTopic.text,
                     difficulties: files.difficulties,
                     count: files.count,
-                    answersCount: files.answersCount
+                    answersCount: files.answersCount,
+                    language: files.language
                 })
             });
 
@@ -179,6 +182,18 @@ export default function GenerateQuestionsPage() {
                             onChange={(e) => setFiles({ ...files, answersCount: parseInt(e.target.value) })}
                         />
                     </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                    <select
+                        className="w-full rounded-lg border border-gray-300 p-2.5 text-sm"
+                        value={files.language}
+                        onChange={(e) => setFiles({ ...files, language: e.target.value as 'en' | 'it' })}
+                    >
+                        <option value="en">English (default)</option>
+                        <option value="it">Italian</option>
+                    </select>
                 </div>
 
                 {resultMessage && (

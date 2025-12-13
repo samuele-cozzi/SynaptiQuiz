@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { Game } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Plus, Play, Eye, Copy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -13,13 +14,29 @@ import { useRouter } from 'next/navigation';
 export default function GamesPage() {
     const { player: currentUser } = useAuth();
     const [games, setGames] = useState<Game[]>([]);
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
+
+    // Filters
+    const [filterName, setFilterName] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+    const [filterLanguage, setFilterLanguage] = useState('');
+
+    const filteredGames = games.filter(g => {
+        const matchesName = g.name?.toLowerCase().includes(filterName.toLowerCase()) ||
+            g.id.toLowerCase().includes(filterName.toLowerCase());
+        const matchesStatus = filterStatus ? g.status === filterStatus : true;
+        const matchesLanguage = filterLanguage ? (g.language || 'en') === filterLanguage : true;
+        return matchesName && matchesStatus && matchesLanguage;
+    });
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             const gamesQ = query(collection(db, 'games'), orderBy('createdAt', 'desc'));
             const gSnap = await getDocs(gamesQ);
             setGames(gSnap.docs.map(d => d.data() as Game));
+            setLoading(false);
         };
         fetchData();
     }, [currentUser]);
@@ -36,6 +53,43 @@ export default function GamesPage() {
                 )}
             </div>
 
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Search Name/ID</label>
+                    <Input
+                        placeholder="Search by name or ID..."
+                        value={filterName}
+                        onChange={(e) => setFilterName(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
+                    <select
+                        className="w-full rounded-lg border border-gray-300 p-2.5 text-sm"
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="CREATED">Created</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="COMPLETED">Completed</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Language</label>
+                    <select
+                        className="w-full rounded-lg border border-gray-300 p-2.5 text-sm"
+                        value={filterLanguage}
+                        onChange={(e) => setFilterLanguage(e.target.value)}
+                    >
+                        <option value="">All Languages</option>
+                        <option value="en">English</option>
+                        <option value="it">Italian</option>
+                    </select>
+                </div>
+            </div>
+
             <div className="bg-white rounded-lg border border-gray-200">
                 <Table>
                     <TableHeader>
@@ -49,7 +103,7 @@ export default function GamesPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {games.map(g => (
+                        {filteredGames.map(g => (
                             <TableRow key={g.id}>
                                 <TableCell className="font-mono text-xs">{g.id}</TableCell>
                                 <TableCell className="font-medium">{g.name || '-'}</TableCell>

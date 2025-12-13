@@ -35,11 +35,13 @@ export default function QuestionsPage() {
         text: string;
         difficulty: number;
         topicId: string;
+        language: 'en' | 'it';
         answers: Answer[];
     }>({
         text: '',
         difficulty: 1,
         topicId: '',
+        language: 'en',
         answers: [...INITIAL_ANSWERS]
     });
 
@@ -47,12 +49,14 @@ export default function QuestionsPage() {
     const [filterText, setFilterText] = useState('');
     const [filterTopic, setFilterTopic] = useState('');
     const [filterDifficulty, setFilterDifficulty] = useState('');
+    const [filterLanguage, setFilterLanguage] = useState('');
 
     const filteredQuestions = questions.filter(q => {
         const matchesText = q.text.toLowerCase().includes(filterText.toLowerCase());
         const matchesTopic = filterTopic ? q.topicId === filterTopic : true;
         const matchesDifficulty = filterDifficulty ? q.difficulty === parseInt(filterDifficulty) : true;
-        return matchesText && matchesTopic && matchesDifficulty;
+        const matchesLanguage = filterLanguage ? (q.language || 'en') === filterLanguage : true;
+        return matchesText && matchesTopic && matchesDifficulty && matchesLanguage;
     });
 
     const { t } = useTranslation('common');
@@ -81,6 +85,7 @@ export default function QuestionsPage() {
             text: '',
             difficulty: 1,
             topicId: topics[0]?.id || '',
+            language: 'en',
             answers: JSON.parse(JSON.stringify(INITIAL_ANSWERS)) // Deep copy
         });
         setIsModalOpen(true);
@@ -92,6 +97,7 @@ export default function QuestionsPage() {
             text: q.text,
             difficulty: q.difficulty,
             topicId: q.topicId,
+            language: q.language || 'en',
             answers: q.answers
         });
         setIsModalOpen(true);
@@ -171,7 +177,7 @@ export default function QuestionsPage() {
             </div>
 
             {/* Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Search Question</label>
                     <Input
@@ -200,6 +206,18 @@ export default function QuestionsPage() {
                     >
                         <option value="">All Difficulties</option>
                         {[1, 2, 3, 4, 5].map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Language</label>
+                    <select
+                        className="w-full rounded-lg border border-gray-300 p-2.5 text-sm"
+                        value={filterLanguage}
+                        onChange={(e) => setFilterLanguage(e.target.value)}
+                    >
+                        <option value="">All Languages</option>
+                        <option value="en">English</option>
+                        <option value="it">Italian</option>
                     </select>
                 </div>
             </div>
@@ -272,6 +290,17 @@ export default function QuestionsPage() {
                                     value={formData.difficulty || ''}
                                     onChange={e => setFormData({ ...formData, difficulty: parseInt(e.target.value) as 1 | 2 | 3 | 4 | 5 || 0 })}
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                                <select
+                                    className="w-full rounded-lg border border-gray-300 p-2.5 text-sm"
+                                    value={formData.language}
+                                    onChange={e => setFormData({ ...formData, language: e.target.value as 'en' | 'it' })}
+                                >
+                                    <option value="en">English (default)</option>
+                                    <option value="it">Italian</option>
+                                </select>
                             </div>
                         </div>
                     </div>

@@ -22,6 +22,7 @@ function CreateGameContent() {
 
     const [gameId, setGameId] = useState('');
     const [gameName, setGameName] = useState('');
+    const [gameLanguage, setGameLanguage] = useState<'en' | 'it'>('en');
     const [players, setPlayers] = useState<Player[]>([]);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [topics, setTopics] = useState<Topic[]>([]);
@@ -75,11 +76,7 @@ function CreateGameContent() {
                     if (gameDoc.exists()) {
                         const game = gameDoc.data() as Game;
                         initialQuestions = game.questionIds;
-                        // Use original name copy? Or default new? Let's use default new for now as requested.
-                        // Actually, if duplicating, maybe we want "Copy of..."?
-                        // User asked for "prepopulate with Game id". 
-                        // So we stick to the mount effect setting Game ${id}.
-                        // If they wanted different behavior for duplication they would say so.
+                        if (game.language) setGameLanguage(game.language);
                     }
                 }
 
@@ -123,7 +120,8 @@ function CreateGameContent() {
             questionIds: formData.selectedQuestions,
             scores: formData.selectedPlayers.reduce((acc, pid) => ({ ...acc, [pid]: 0 }), {}),
             createdAt: Date.now(),
-            history: []
+            history: [],
+            language: gameLanguage
         };
 
         try {
@@ -137,6 +135,10 @@ function CreateGameContent() {
     );
 
     const filteredQuestions = questions.filter(q => {
+        // Filter by language first (legacy undefined -> 'en')
+        const qLang = q.language || 'en';
+        if (qLang !== gameLanguage) return false;
+
         const matchesText = q.text.toLowerCase().includes(questionFilters.text.toLowerCase());
         const matchesTopic = questionFilters.topicId ? q.topicId === questionFilters.topicId : true;
         const matchesDifficulty = questionFilters.difficulty ? q.difficulty === parseInt(questionFilters.difficulty) : true;
@@ -156,17 +158,35 @@ function CreateGameContent() {
                 </h1>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Game Name</label>
-                <Input
-                    value={gameName}
-                    onChange={(e) => setGameName(e.target.value)}
-                    placeholder="e.g. Weekly Challenge"
-                    className="max-w-md"
-                />
+            <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Game Name</label>
+                    <Input
+                        value={gameName}
+                        onChange={(e) => setGameName(e.target.value)}
+                        placeholder="e.g. Weekly Challenge"
+                        className="max-w-md"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Game Language</label>
+                    <select
+                        className="w-full max-w-xs rounded-lg border border-gray-300 p-2.5 text-sm"
+                        value={gameLanguage}
+                        onChange={(e) => {
+                            setGameLanguage(e.target.value as 'en' | 'it');
+                            // Clear selected questions when language changes to avoid mismatch
+                            setFormData(prev => ({ ...prev, selectedQuestions: [] }));
+                        }}
+                    >
+                        <option value="en">English</option>
+                        <option value="it">Italian</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">Changing language will clear selected questions.</p>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-220px)]">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-280px)]">
                 {/* Players Section */}
                 <div className="bg-white p-4 rounded-lg border border-gray-200 flex flex-col h-full">
                     <h2 className="text-lg font-semibold mb-3">Select Players ({formData.selectedPlayers.length})</h2>

@@ -19,19 +19,22 @@ export type Answer = {
     plausibility: number; // 0-100 placeholder
 };
 
+export type Language = 'en' | 'it';
+
 export type Question = {
     id: string;
     text: string;
     topicId: string;
     difficulty: 1 | 2 | 3 | 4 | 5;
     answers: Answer[];
+    language?: Language; // Optional for migration
 };
 
 export type GameStatus = 'CREATED' | 'IN_PROGRESS' | 'COMPLETED';
 
 export type Game = {
     id: string;
-    name?: string; // New field
+    name?: string;
     status: GameStatus;
     playerIds: string[];
     questionIds: string[];
@@ -39,6 +42,7 @@ export type Game = {
     scores: Record<string, number>; // playerId -> score
     createdAt: number;
     history?: GameHistoryItem[];
+    language?: Language; // Optional for migration
 };
 
 export type GameHistoryItem = {
