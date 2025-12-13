@@ -162,7 +162,7 @@ export default function QuestionsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">Questions Management</h1>
-                {currentUser?.isAdmin && (currentUser?.isEnabled ?? true) && (
+                {currentUser?.isAdmin && (
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={() => window.location.href = '/dashboard/questions/generate'}>
                             <Sparkles className="mr-2 h-4 w-4 text-purple-600" />
@@ -239,7 +239,7 @@ export default function QuestionsPage() {
                                 <TableCell>{topics.find(t => t.id === q.topicId)?.text || 'Unknown'}</TableCell>
                                 <TableCell>{q.difficulty}</TableCell>
                                 <TableCell className="text-right">
-                                    {currentUser?.isAdmin && (currentUser?.isEnabled ?? true) && (
+                                    {currentUser?.isAdmin && (
                                         <div className="flex justify-end gap-2">
                                             <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(q)}>
                                                 <Edit2 className="h-4 w-4" />

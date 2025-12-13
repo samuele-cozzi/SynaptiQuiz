@@ -84,7 +84,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     username: firebaseUser.displayName || 'Player',
                     avatarUrl: firebaseUser.photoURL || '',
                     isAdmin: isFirstPlayer, // First player is admin logic
-                    isEnabled: false, // New players are disabled by default
                     email: firebaseUser.email || undefined,
                     createdAt: Date.now(),
                 };
@@ -149,7 +148,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 id: currentUid,
                 username: username,
                 isAdmin: isFirstPlayer,
-                isEnabled: false, // New players are disabled by default
                 createdAt: Date.now(),
                 avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}` // Auto avatar
             };

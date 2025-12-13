@@ -45,7 +45,7 @@ export default function GamesPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">Games</h1>
-                {currentUser?.isAdmin && (currentUser?.isEnabled ?? true) && (
+                {currentUser?.isAdmin && (
                     <Button onClick={() => router.push('/dashboard/games/create')}>
                         <Plus className="mr-2 h-4 w-4" />
                         New Game

@@ -64,32 +64,39 @@ export default function DashboardPage() {
                         <CardTitle>Quick Actions</CardTitle>
                     </CardHeader>
                     <CardContent className="grid gap-2">
-                        <Link
-                            href="/dashboard/games"
-                            className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-indigo-200 transition-all group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-indigo-100 transition-colors">
-                                    <Gamepad2 className="h-5 w-5 text-purple-600 group-hover:text-indigo-600" />
-                                </div>
-                                <span className="font-medium text-gray-700">Create New Game</span>
-                            </div>
-                            <span className="text-gray-400 group-hover:text-indigo-400">&rarr;</span>
-                        </Link>
-
                         {player?.isAdmin && (
-                            <Link
-                                href="/dashboard/questions"
-                                className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-indigo-200 transition-all group"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-indigo-100 transition-colors">
-                                        <HelpCircle className="h-5 w-5 text-blue-600 group-hover:text-indigo-600" />
+                            <>
+                                <Link
+                                    href="/dashboard/games/create"
+                                    className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-indigo-200 transition-all group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-indigo-100 transition-colors">
+                                            <Gamepad2 className="h-5 w-5 text-purple-600 group-hover:text-indigo-600" />
+                                        </div>
+                                        <span className="font-medium text-gray-700">Create New Game</span>
                                     </div>
-                                    <span className="font-medium text-gray-700">Manage Questions</span>
-                                </div>
-                                <span className="text-gray-400 group-hover:text-indigo-400">&rarr;</span>
-                            </Link>
+                                    <span className="text-gray-400 group-hover:text-indigo-400">&rarr;</span>
+                                </Link>
+
+                                <Link
+                                    href="/dashboard/questions"
+                                    className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-indigo-200 transition-all group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-indigo-100 transition-colors">
+                                            <HelpCircle className="h-5 w-5 text-blue-600 group-hover:text-indigo-600" />
+                                        </div>
+                                        <span className="font-medium text-gray-700">Manage Questions</span>
+                                    </div>
+                                    <span className="text-gray-400 group-hover:text-indigo-400">&rarr;</span>
+                                </Link>
+                            </>
+                        )}
+                        {!player?.isAdmin && (
+                            <div className="p-4 text-center text-gray-500">
+                                <p className="text-sm">Visit the Games page to play or duplicate games</p>
+                            </div>
                         )}
                     </CardContent>
                 </Card>

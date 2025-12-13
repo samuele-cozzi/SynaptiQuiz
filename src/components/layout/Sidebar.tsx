@@ -36,7 +36,7 @@ export function Sidebar() {
         { name: 'Settings', href: '/dashboard/settings', icon: Settings },
     ];
 
-    const adminOnly = ['Players'];
+    const adminOnly = ['Players', 'Questions', 'Topics'];
 
     const filteredNav = navigation.filter(item => {
         // Hide admin-only pages for non-admin users

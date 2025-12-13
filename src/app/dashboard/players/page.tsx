@@ -21,7 +21,7 @@ export default function PlayersPage() {
     const { t } = useTranslation('common');
 
     // Form State
-    const [formData, setFormData] = useState({ username: '', isAdmin: false, isEnabled: false });
+    const [formData, setFormData] = useState({ username: '', isAdmin: false });
 
     const fetchPlayers = async () => {
         try {
@@ -41,7 +41,7 @@ export default function PlayersPage() {
 
     const handleEdit = (player: Player) => {
         setSelectedPlayer(player);
-        setFormData({ username: player.username, isAdmin: player.isAdmin, isEnabled: player.isEnabled ?? true });
+        setFormData({ username: player.username, isAdmin: player.isAdmin });
         setIsEditOpen(true);
     };
 
@@ -62,8 +62,7 @@ export default function PlayersPage() {
             const ref = doc(db, 'players', selectedPlayer.id);
             await updateDoc(ref, {
                 username: formData.username,
-                isAdmin: formData.isAdmin,
-                isEnabled: formData.isEnabled
+                isAdmin: formData.isAdmin
             });
             setIsEditOpen(false);
             fetchPlayers();
@@ -86,7 +85,6 @@ export default function PlayersPage() {
                         <TableRow>
                             <TableHead>Player</TableHead>
                             <TableHead>Role</TableHead>
-                            <TableHead>Status</TableHead>
                             <TableHead>Joined</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -112,17 +110,6 @@ export default function PlayersPage() {
                                     ) : (
                                         <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
                                             <UserIcon className="h-3 w-3" /> Player
-                                        </span>
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    {(p.isEnabled ?? true) ? (
-                                        <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
-                                            Enabled
-                                        </span>
-                                    ) : (
-                                        <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700">
-                                            Disabled
                                         </span>
                                     )}
                                 </TableCell>
@@ -172,18 +159,6 @@ export default function PlayersPage() {
                         />
                         <label htmlFor="isAdmin" className="text-sm font-medium text-gray-700">
                             Grant Admin Privileges
-                        </label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id="isEnabled"
-                            checked={formData.isEnabled}
-                            onChange={(e) => setFormData({ ...formData, isEnabled: e.target.checked })}
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                        />
-                        <label htmlFor="isEnabled" className="text-sm font-medium text-gray-700">
-                            Enable Player (allow content creation)
                         </label>
                     </div>
                     <div className="flex justify-end gap-2 pt-4">
