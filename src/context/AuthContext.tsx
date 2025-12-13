@@ -47,6 +47,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
+        // Safety: Check if config is mock (missing env vars)
+        const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+        if (!apiKey || apiKey === 'mock_key') {
+            console.error("CRITICAL: Firebase API Key is missing or default. Check your .env.local or deployment environment variables!");
+            alert("Configuration Error: Firebase API Key is missing. Login will fail. See console.");
+        }
+
+        // Safety: Force stop loading after 5 seconds to prevent infinite spinners
+        const safetyTimer = setTimeout(() => {
+            if (loading) {
+                console.warn("AuthContext: Safety timeout reached. Forcing loading to false.");
+                setLoading(false);
+            }
+        }, 5000);
+
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             console.log("AuthContext: Auth State Changed", firebaseUser?.uid);
             setUser(firebaseUser);
@@ -62,9 +77,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setPlayer(null);
             }
             setLoading(false);
+            clearTimeout(safetyTimer); // Clear safety timer on success
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            clearTimeout(safetyTimer);
+        };
     }, []);
 
     const fetchPlayerProfile = async (firebaseUser: User) => {
