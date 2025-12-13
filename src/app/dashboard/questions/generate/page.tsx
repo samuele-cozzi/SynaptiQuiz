@@ -51,41 +51,101 @@ export default function GenerateQuestionsPage() {
         const selectedTopic = topics.find(t => t.id === files.topicId);
         if (!selectedTopic) return;
 
+        const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+        if (!apiKey) {
+            setResultMessage('⚠️ GEMINI_API_KEY not configured. Please add NEXT_PUBLIC_GEMINI_API_KEY to .env.local');
+            return;
+        }
+
         setGenerating(true);
         setResultMessage('');
 
         try {
-            const response = await fetch('/api/questions/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    topicId: files.topicId,
-                    topicText: selectedTopic.text,
-                    difficulties: files.difficulties,
-                    count: files.count,
-                    answersCount: files.answersCount,
-                    language: files.language
-                })
-            });
+            // Import Gemini SDK dynamically
+            const { GoogleGenerativeAI } = await import('@google/generative-ai');
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
-            const data = await response.json();
+            const totalQuestions = files.count * files.difficulties.length;
+            const langText = files.language === 'it' ? 'Italian' : 'English';
 
-            if (!response.ok) {
-                // If it's a rate limit error, show a more specific/helpful message if available
-                if (response.status === 429) {
-                    setResultMessage(`⚠️ ${data.error || 'Daily limit reached. Please try again later.'}`);
-                } else {
-                    throw new Error(data.error || 'Failed to generate questions');
-                }
-                return; // Stop here
+            const prompt = `
+Generate ${totalQuestions} multiple choice quiz questions about "${selectedTopic.text}" in ${langText}.
+
+Requirements:
+- Generate exactly ${files.count} questions for EACH of the following difficulty levels: ${files.difficulties.join(', ')}.
+- Difficulty scale is 1-5.
+- Each question must have exactly ${files.answersCount} answer options.
+- The questions and answers must be in ${langText}.
+
+Example JSON format:
+[
+  {
+    "text": "Question text here?",
+    "difficulty": 3,
+    "answers": [
+       { "text": "Answer 1", "correct": false, "plausibility": 50 },
+       { "text": "Correct Answer", "correct": true, "plausibility": 100 }
+    ]
+  }
+]
+RETURN ONLY RAW JSON ARRAY. NO MARKDOWN.
+            `;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+
+            // Clean markdown if present
+            const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+            let questionsData = [];
+            try {
+                questionsData = JSON.parse(jsonStr);
+            } catch (e) {
+                console.error("Failed to parse AI response:", text);
+                setResultMessage('❌ Failed to parse AI response. Please try again.');
+                return;
             }
 
-            setResultMessage(`Success! Generated ${data.count} questions.`);
-            // Optional: Redirect after success? 
-            // setTimeout(() => router.push('/dashboard/questions'), 2000);
+            if (!Array.isArray(questionsData)) {
+                setResultMessage('❌ AI returned invalid format. Please try again.');
+                return;
+            }
+
+            // Save to Firestore
+            const { collection: firestoreCollection, doc, setDoc } = await import('firebase/firestore');
+            const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+
+            for (const qData of questionsData) {
+                const id = generateId();
+                const diff = qData.difficulty && files.difficulties.includes(qData.difficulty)
+                    ? qData.difficulty
+                    : files.difficulties[0];
+
+                const question: Question = {
+                    id,
+                    topicId: files.topicId,
+                    text: qData.text,
+                    difficulty: diff,
+                    answers: qData.answers,
+                    language: files.language || 'en'
+                };
+
+                await setDoc(doc(db, 'questions', id), question);
+            }
+
+            setResultMessage(`✅ Success! Generated ${questionsData.length} questions.`);
+
         } catch (e: any) {
             console.error(e);
-            setResultMessage(`Error: ${e.message}`);
+
+            // Handle Rate Limits specifically
+            if (e.message?.includes('429') || e.message?.includes('quota') || e.message?.includes('RESOURCE_EXHAUSTED')) {
+                setResultMessage('⚠️ AI Rate limit exceeded. Please wait a minute and try again. (Free Tier Limit)');
+            } else {
+                setResultMessage(`❌ Error: ${e.message}`);
+            }
         } finally {
             setGenerating(false);
         }
