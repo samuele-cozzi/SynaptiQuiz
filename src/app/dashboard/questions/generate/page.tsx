@@ -36,13 +36,19 @@ export default function GenerateQuestionsPage() {
     });
 
     useEffect(() => {
+        // Protect Route
+        if (!loading && (!currentUser || !currentUser.isAdmin)) {
+            router.push('/dashboard/questions');
+            return;
+        }
+
         const fetchTopics = async () => {
             const tSnap = await getDocs(collection(db, 'topics'));
             setTopics(tSnap.docs.map(d => d.data() as Topic));
             setLoading(false);
         };
         fetchTopics();
-    }, []);
+    }, [currentUser, loading, router]);
 
     const handleGenerate = async () => {
         if (!files.topicId) return alert('Select a Topic');

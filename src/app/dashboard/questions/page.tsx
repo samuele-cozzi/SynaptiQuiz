@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Plus, Edit2, Trash2, CheckCircle2, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'next/navigation';
 
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -28,6 +29,7 @@ export default function QuestionsPage() {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [topics, setTopics] = useState<Topic[]>([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -164,7 +166,7 @@ export default function QuestionsPage() {
                 <h1 className="text-2xl font-bold text-gray-900">Questions Management</h1>
                 {currentUser?.isAdmin && (
                     <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => window.location.href = '/dashboard/questions/generate'}>
+                        <Button variant="outline" onClick={() => router.push('/dashboard/questions/generate')}>
                             <Sparkles className="mr-2 h-4 w-4 text-purple-600" />
                             Generate with AI
                         </Button>
