@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { doc, onSnapshot, updateDoc, arrayUnion, increment, getDoc } from 'firebase/firestore';
-import { Game, Player, Question, Answer } from '@/types';
+import { Game, Player, Question, Answer, Topic } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useSearchParams } from 'next/navigation';
@@ -27,6 +27,7 @@ function GameContent() {
     const [game, setGame] = useState<Game | null>(null);
     const [players, setPlayers] = useState<Record<string, Player>>({});
     const [questions, setQuestions] = useState<Record<string, Question>>({});
+    const [topics, setTopics] = useState<Record<string, Topic>>({});
     const [loading, setLoading] = useState(true);
 
     // Local state for "Answering" phase if we want to show UI before submitting
@@ -54,6 +55,14 @@ function GameContent() {
                     const qMap: Record<string, Question> = {};
                     qSnaps.forEach(s => { if (s.exists()) qMap[s.id] = s.data() as Question; });
                     setQuestions(qMap);
+
+                    // Fetch topics for grouping
+                    const topicIds = new Set(Object.values(qMap).map(q => q.topicId));
+                    const tSnaps = await Promise.all(Array.from(topicIds).map(tid => getDoc(doc(db, 'topics', tid))));
+                    const tMap: Record<string, Topic> = {};
+                    tSnaps.forEach(s => { if (s.exists()) tMap[s.id] = s.data() as Topic; });
+                    setTopics(tMap);
+
                     setLoading(false);
                 }
             }
@@ -267,45 +276,80 @@ function GameContent() {
                 </div>
             </div>
 
-            {/* QUESTION GRID */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {game.questionIds.map((qid) => {
-                    const q = questions[qid];
-                    const isUsed = usedQuestionIds.has(qid);
-                    if (!q) return null; // Loading or error
+            {/* QUESTION GRID - Grouped by Topic */}
+            <div className="space-y-6">
+                {(() => {
+                    // Group questions by topic
+                    const questionsByTopic: Record<string, string[]> = {};
+                    game.questionIds.forEach(qid => {
+                        const q = questions[qid];
+                        if (!q) return;
+                        if (!questionsByTopic[q.topicId]) {
+                            questionsByTopic[q.topicId] = [];
+                        }
+                        questionsByTopic[q.topicId].push(qid);
+                    });
 
-                    return (
-                        <button
-                            key={qid}
-                            disabled={isUsed || !isMyTurn}
-                            onClick={() => handleSelectQuestion(qid)}
-                            className={`
-                          p-6 rounded-xl border flex flex-col items-center justify-center min-h-[160px] text-center transition-all
-                          ${isUsed
-                                    ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
-                                    : isMyTurn
-                                        ? 'bg-white border-indigo-200 shadow-sm hover:shadow-md hover:border-indigo-500 hover:scale-105 cursor-pointer'
-                                        : 'bg-white border-gray-200 cursor-wait'
-                                }
-                      `}
-                        >
-                            {isUsed ? (
-                                <>
-                                    <CheckCircle className="h-8 w-8 text-gray-400 mb-2" />
-                                    <span className="text-gray-400 text-sm">Completed</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span className="text-3xl font-black text-indigo-100 mb-2">{POINTS_MAP[q.difficulty]}</span>
-                                    <span className="font-semibold text-gray-900 line-clamp-2">{q.text}</span>
-                                    <span className="mt-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                                        Difficulty {q.difficulty}
-                                    </span>
-                                </>
-                            )}
-                        </button>
-                    )
-                })}
+                    // Sort questions within each topic by difficulty
+                    Object.keys(questionsByTopic).forEach(topicId => {
+                        questionsByTopic[topicId].sort((a, b) => {
+                            const qA = questions[a];
+                            const qB = questions[b];
+                            return qA.difficulty - qB.difficulty;
+                        });
+                    });
+
+                    return Object.entries(questionsByTopic).map(([topicId, qids]) => {
+                        const topic = topics[topicId];
+                        return (
+                            <div key={topicId} className="space-y-3">
+                                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                    {topic?.text || 'Unknown Topic'}
+                                    <span className="text-sm font-normal text-gray-500">({qids.length} questions)</span>
+                                </h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {qids.map((qid) => {
+                                        const q = questions[qid];
+                                        const isUsed = usedQuestionIds.has(qid);
+                                        if (!q) return null;
+
+                                        return (
+                                            <button
+                                                key={qid}
+                                                disabled={isUsed || !isMyTurn}
+                                                onClick={() => handleSelectQuestion(qid)}
+                                                className={`
+                                                    p-6 rounded-xl border flex flex-col items-center justify-center min-h-[160px] text-center transition-all
+                                                    ${isUsed
+                                                        ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
+                                                        : isMyTurn
+                                                            ? 'bg-white border-indigo-200 shadow-sm hover:shadow-md hover:border-indigo-500 hover:scale-105 cursor-pointer'
+                                                            : 'bg-white border-gray-200 cursor-wait'
+                                                    }
+                                                `}
+                                            >
+                                                {isUsed ? (
+                                                    <>
+                                                        <CheckCircle className="h-8 w-8 text-gray-400 mb-2" />
+                                                        <span className="text-gray-400 text-sm">Completed</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="text-3xl font-black text-indigo-100 mb-2">{POINTS_MAP[q.difficulty]}</span>
+                                                        <span className="font-semibold text-gray-900 line-clamp-2">{q.text}</span>
+                                                        <span className="mt-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                                                            Difficulty {q.difficulty}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    });
+                })()}
             </div>
         </div>
     );
