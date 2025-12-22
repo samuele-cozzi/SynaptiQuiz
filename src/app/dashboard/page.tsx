@@ -38,7 +38,7 @@ export default function DashboardPage() {
         <div className="space-y-6">
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
                 <h1 className="text-3xl font-bold text-white mb-2">
-                    {t('dashboard.welcome')}, {session.user.username}!
+                    {t('dashboard.welcome')}, {session.user.username || session.user.name || 'User'}!
                 </h1>
                 <p className="text-white/60">
                     {t('dashboard.title')}

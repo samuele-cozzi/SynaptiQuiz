@@ -86,12 +86,12 @@ export default function DashboardLayout({
                     <div className="mb-8 p-4 bg-white/10 rounded-lg">
                         <div className="flex items-center gap-3">
                             <img
-                                src={session.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.username}`}
+                                src={session.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.username || session.user.id}`}
                                 alt="Avatar"
                                 className="w-12 h-12 rounded-full"
                             />
                             <div>
-                                <p className="text-white font-semibold">{session.user.username}</p>
+                                <p className="text-white font-semibold">{session.user.username || session.user.name || 'User'}</p>
                                 <p className="text-white/60 text-sm">{session.user.role}</p>
                             </div>
                         </div>
