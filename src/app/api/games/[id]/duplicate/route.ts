@@ -45,7 +45,7 @@ export async function POST(
                     ],
                 },
                 questions: {
-                    create: originalGame.questions.map((gq) => ({
+                    create: originalGame.questions.map((gq: { questionId: string }) => ({
                         questionId: gq.questionId,
                         isPlayed: false,
                     })),
