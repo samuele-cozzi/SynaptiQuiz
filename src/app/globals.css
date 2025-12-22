@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light theme */
+  --background: 255 255 255;
+  --foreground: 23 23 23;
+  --card: 255 255 255;
+  --card-foreground: 23 23 23;
+  --primary: 99 102 241;
+  --primary-foreground: 255 255 255;
+  --secondary: 240 240 240;
+  --secondary-foreground: 23 23 23;
+  --muted: 240 240 240;
+  --muted-foreground: 115 115 115;
+  --accent: 240 240 240;
+  --accent-foreground: 23 23 23;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 229 229 229;
+  --input: 229 229 229;
+  --ring: 99 102 241;
+  --radius: 0.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --background: 10 10 10;
+  --foreground: 237 237 237;
+  --card: 23 23 23;
+  --card-foreground: 237 237 237;
+  --primary: 99 102 241;
+  --primary-foreground: 255 255 255;
+  --secondary: 38 38 38;
+  --secondary-foreground: 237 237 237;
+  --muted: 38 38 38;
+  --muted-foreground: 163 163 163;
+  --accent: 38 38 38;
+  --accent-foreground: 237 237 237;
+  --destructive: 220 38 38;
+  --destructive-foreground: 255 255 255;
+  --border: 38 38 38;
+  --input: 38 38 38;
+  --ring: 99 102 241;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: rgb(var(--border));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
 }

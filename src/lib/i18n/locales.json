@@ -1,0 +1,96 @@
+{
+    "en": {
+        "translation": {
+            "auth": {
+                "login": "Login",
+                "register": "Register",
+                "username": "Username",
+                "password": "Password",
+                "confirmPassword": "Confirm Password",
+                "loginAsGuest": "Login as Guest",
+                "loginWithGoogle": "Login with Google",
+                "loginWithCredentials": "Login with Credentials",
+                "noAccount": "Don't have an account?",
+                "hasAccount": "Already have an account?",
+                "signIn": "Sign In",
+                "signUp": "Sign Up"
+            },
+            "dashboard": {
+                "title": "Dashboard",
+                "points": "Points",
+                "gamesPlayed": "Games Played",
+                "welcome": "Welcome"
+            },
+            "menu": {
+                "games": "Games",
+                "questions": "Questions",
+                "topics": "Topics",
+                "players": "Players",
+                "options": "Options",
+                "leaderboard": "Leaderboard",
+                "logout": "Logout"
+            },
+            "common": {
+                "save": "Save",
+                "cancel": "Cancel",
+                "delete": "Delete",
+                "edit": "Edit",
+                "create": "Create",
+                "update": "Update",
+                "filter": "Filter",
+                "search": "Search",
+                "name": "Name",
+                "status": "Status",
+                "language": "Language",
+                "actions": "Actions"
+            }
+        }
+    },
+    "it": {
+        "translation": {
+            "auth": {
+                "login": "Accedi",
+                "register": "Registrati",
+                "username": "Nome utente",
+                "password": "Password",
+                "confirmPassword": "Conferma Password",
+                "loginAsGuest": "Accedi come Ospite",
+                "loginWithGoogle": "Accedi con Google",
+                "loginWithCredentials": "Accedi con Credenziali",
+                "noAccount": "Non hai un account?",
+                "hasAccount": "Hai già un account?",
+                "signIn": "Accedi",
+                "signUp": "Registrati"
+            },
+            "dashboard": {
+                "title": "Pannello di Controllo",
+                "points": "Punti",
+                "gamesPlayed": "Partite Giocate",
+                "welcome": "Benvenuto"
+            },
+            "menu": {
+                "games": "Partite",
+                "questions": "Domande",
+                "topics": "Argomenti",
+                "players": "Giocatori",
+                "options": "Opzioni",
+                "leaderboard": "Classifica",
+                "logout": "Esci"
+            },
+            "common": {
+                "save": "Salva",
+                "cancel": "Annulla",
+                "delete": "Elimina",
+                "edit": "Modifica",
+                "create": "Crea",
+                "update": "Aggiorna",
+                "filter": "Filtra",
+                "search": "Cerca",
+                "name": "Nome",
+                "status": "Stato",
+                "language": "Lingua",
+                "actions": "Azioni"
+            }
+        }
+    }
+}

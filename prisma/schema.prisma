@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  PLAYER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  username      String?   @unique
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?   // Avatar URL
+  password      String?
+  role          Role      @default(PLAYER)
+  isGuest       Boolean   @default(false)
+  
+  gamesPlayedCount Int      @default(0)
+  gamesWonCount    Int      @default(0)
+  totalPoints      Int      @default(0)
+  
+  accounts      Account[]
+  sessions      Session[]
+  
+  createdGames  Game[]    @relation("GameOwner")
+  gamesPlayed   GamePlayer[]
+  answers       PlayerAnswer[]
+}
+
+model Topic {
+  id        String     @id @default(cuid())
+  text      String     @unique
+  image     String?
+  questions Question[]
+}
+
+model Question {
+  id         String   @id @default(cuid())
+  text       String
+  difficulty Int      // 1-5
+  language   String   // 'en' or 'it'
+  topicId    String
+  topic      Topic    @relation(fields: [topicId], references: [id])
+  answers    Answer[]
+  
+  gameQuestions GameQuestion[]
+  playerAnswers PlayerAnswer[]
+}
+
+model Answer {
+  id           String   @id @default(cuid())
+  text         String
+  correct      Boolean
+  plausibility Int      // Percentage
+  questionId   String
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  chosenBy     PlayerAnswer[]
+}
+
+enum GameStatus {
+  CREATED
+  STARTED
+  ENDED
+}
+
+model Game {
+  id          String     @id @default(cuid())
+  name        String
+  language    String
+  status      GameStatus @default(CREATED)
+  ownerId     String
+  owner       User       @relation("GameOwner", fields: [ownerId], references: [id])
+  createdAt   DateTime   @default(now())
+  currentTurnIndex Int   @default(0)
+  selectedQuestionId String?
+  
+  players     GamePlayer[]
+  questions   GameQuestion[]
+  playerAnswers PlayerAnswer[]
+}
+
+model GamePlayer {
+  id        String @id @default(cuid())
+  gameId    String
+  userId    String
+  score     Int    @default(0)
+  
+  game      Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([gameId, userId])
+}
+
+model GameQuestion {
+  id         String   @id @default(cuid())
+  gameId     String
+  questionId String
+  isPlayed   Boolean  @default(false)
+  
+  game       Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@unique([gameId, questionId])
+}
+
+model PlayerAnswer {
+  id         String   @id @default(cuid())
+  gameId     String
+  userId     String
+  questionId String
+  answerId   String
+  
+  game       Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id])
+  answer     Answer   @relation(fields: [answerId], references: [id])
+}

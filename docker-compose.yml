@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: synaptiquiz_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: synaptiquiz
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/home/samuele/.data/synaptiquiz/postgresql
