@@ -24,13 +24,21 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        const players = await prisma.user.findMany({
+            select: {
+                id: true
+            }
+        });
+
+        const role = players.length === 0 ? 'ADMIN' : 'PLAYER';
+
         // Create new user
         const user = await prisma.user.create({
             data: {
                 username,
                 name: username,
                 password,
-                role: 'PLAYER',
+                role: role,
                 isGuest: false,
                 image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
             },
