@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.2...v0.1.3) (2025-12-23)
+
+
+### Features
+
+* enable authenticated checkout for release workflow ([79a66d8](https://github.com/samuele-cozzi/SynaptiQuiz/commit/79a66d80963062f444a0f3e67283cad10ea2b5d2))
+
 ### [0.1.2](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.1...v0.1.2) (2025-12-23)
 
 
