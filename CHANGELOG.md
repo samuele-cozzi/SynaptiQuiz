@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.2](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.1...v0.1.2) (2025-12-23)
+
+
+### Features
+
+* autorelease ([37990c4](https://github.com/samuele-cozzi/SynaptiQuiz/commit/37990c47254fe8496a898897642af069f1c301cb))
+* release please action ([cee4c3c](https://github.com/samuele-cozzi/SynaptiQuiz/commit/cee4c3c0dcd70204d2fea97564dc3b3e21e87fcb))
+
 ### 0.1.1 (2025-12-23)
 
 
