@@ -2,7 +2,7 @@
 
 This guide covers deploying SynaptiQuiz to production using either Vercel + Supabase or self-hosted Docker.
 
-## Option 1: Vercel + Supabase (Recommended)
+## Option 1: Vercel + Supabase
 
 ### Prerequisites
 - GitHub account
@@ -13,19 +13,17 @@ This guide covers deploying SynaptiQuiz to production using either Vercel + Supa
 
 1. Go to [Supabase](https://supabase.com/) and create a new project
 2. Wait for the database to be provisioned
-3. Go to **Settings** → **Database**
-4. Copy the **Connection String** (URI format)
+3. Go to the top of the page and click on **Connect** → **ORMs**
+4. Copy the **Connection String** (URI format of DIRECT_URL)
 5. Replace `[YOUR-PASSWORD]` with your database password
 
 ### Step 2: Prepare Your Repository
 
 1. Push your code to GitHub:
+
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
 git remote add origin <your-github-repo-url>
+git branch -M main
 git push -u origin main
 ```
 
@@ -55,37 +53,10 @@ GOOGLE_CLIENT_SECRET=<your-google-client-secret>
 NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true
 ```
 
-### Step 5: Run Database Migrations
-
-After deployment, run migrations using Vercel CLI:
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Login
-vercel login
-
-# Link project
-vercel link
-
-# Run migrations
-vercel env pull .env.local
-npx prisma migrate deploy
-```
-
-### Step 6: Create First Admin User
+### Step 5: Create First Admin User
 
 1. Visit your deployed site
-2. Register a new account
-3. Connect to Supabase SQL Editor
-4. Run this query to make yourself admin:
-
-```sql
-UPDATE "User" 
-SET role = 'ADMIN' 
-WHERE username = 'your-username';
-```
+2. Register a new account, the first user will be ADMIN by default
 
 ---
 
@@ -101,18 +72,17 @@ WHERE username = 'your-username';
 Create `Dockerfile` in project root:
 
 ```dockerfile
-FROM node:20-alpine AS base
-
-# Install dependencies only when needed
-FROM base AS deps
+# Stage 1: Dependencies
+FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma/
+RUN [ -f package-lock.json ] && npm ci || npm install
 
-# Rebuild the source code only when needed
-FROM base AS builder
+# Stage 2: Builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -122,10 +92,10 @@ RUN npx prisma generate
 
 # Build Next.js
 ENV NEXT_TELEMETRY_DISABLED 1
-RUN npm run build
+RUN npx next build
 
-# Production image
-FROM base AS runner
+# Stage 3: Runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
@@ -134,10 +104,10 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Copy standalone build
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma
 
 USER nextjs
@@ -150,13 +120,14 @@ ENV HOSTNAME "0.0.0.0"
 CMD ["node", "server.js"]
 ```
 
-### Step 2: Update next.config.js
+### Step 2: Update next.config.ts
 
-Add standalone output:
+Add standalone output to `next.config.ts`:
 
-```javascript
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+```typescript
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   output: 'standalone',
 };
 
