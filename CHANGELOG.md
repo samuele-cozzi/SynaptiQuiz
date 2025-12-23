@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.3...v0.1.4) (2025-12-23)
+
+
+### Features
+
+* Update Docker Hub secret names in auto-release workflow. ([370991c](https://github.com/samuele-cozzi/SynaptiQuiz/commit/370991c7cc7306c264bbcbda56f09fb5470bd3e9))
+
 ### [0.1.3](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.2...v0.1.3) (2025-12-23)
 
 
