@@ -10,5 +10,25 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres-data:/home/samuele/.data/synaptiquiz/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-
+  app:
+    image: node:20-alpine
+    container_name: synaptiquiz_app
+    working_dir: /app
+    volumes:
+      - ./:/app
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/synaptiquiz
+      # Ensure other env vars are passed or loaded from .env
+    ports:
+      - "3000:3000"
+    command: sh -c "rm -rf .next && npm install && npx prisma generate && npm run dev"
+    depends_on:
+      postgres:
+        condition: service_healthy
