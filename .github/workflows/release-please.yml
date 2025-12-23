@@ -1,0 +1,21 @@
+name: release-please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v4
+        with:
+          # this assumes that you are in a repo named synaptiquiz.
+          # release-please will open PRs for you.
+          token: ${{ secrets.GH_TOKEN }}
+          release-type: node
