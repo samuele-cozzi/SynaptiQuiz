@@ -240,6 +240,8 @@ The application supports light and dark themes with:
 | `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret |
 | `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED` | No | Enable Google OAuth (`true`/`false`) |
+| `DOCKERHUB_USERNAME` | Yes (Actions) | Docker Hub username for CI/CD |
+| `DOCKERHUB_TOKEN` | Yes (Actions) | Docker Hub access token for CI/CD |
 
 ## 🤝 Contributing
 
