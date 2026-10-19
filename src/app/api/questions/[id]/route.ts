@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { isQuestionInput } from '@/lib/question-input';
 
 export async function PUT(
     req: NextRequest,
@@ -15,7 +16,21 @@ export async function PUT(
         }
 
         const { id } = await params;
-        const { text, difficulty, language, topicId, answers } = await req.json();
+        const input: unknown = await req.json();
+        if (!isQuestionInput(input)) {
+            return NextResponse.json(
+                { error: 'Invalid question data' },
+                { status: 400 }
+            );
+        }
+        const { text, difficulty, language, topicId, answers } = input;
+
+        if (answers.filter((answer) => answer.correct).length !== 1) {
+            return NextResponse.json(
+                { error: 'Exactly one answer must be correct' },
+                { status: 400 }
+            );
+        }
 
         // Delete existing answers and create new ones
         await prisma.answer.deleteMany({
@@ -30,7 +45,7 @@ export async function PUT(
                 language,
                 topicId,
                 answers: {
-                    create: answers.map((a: any) => ({
+                    create: answers.map((a) => ({
                         text: a.text,
                         correct: a.correct,
                         plausibility: a.plausibility,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -23,23 +23,23 @@ export default function TopicsPage() {
     const [editingTopic, setEditingTopic] = useState<Topic | null>(null);
     const [formData, setFormData] = useState({ text: '', image: '' });
 
-    useEffect(() => {
-        if (status === 'authenticated') {
-            fetchTopics();
-        }
-    }, [status]);
-
-    const fetchTopics = async () => {
+    const fetchTopics = useCallback(async (): Promise<Topic[] | undefined> => {
         try {
             const res = await fetch('/api/topics');
-            const data = await res.json();
-            setTopics(data);
+            return await res.json();
         } catch (error) {
             console.error('Failed to fetch topics:', error);
-        } finally {
-            setLoading(false);
+            return undefined;
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (status === 'authenticated') {
+            fetchTopics().then((data) => {
+                if (data) setTopics(data);
+            }).finally(() => setLoading(false));
+        }
+    }, [status, fetchTopics]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -55,7 +55,9 @@ export default function TopicsPage() {
             });
 
             if (res.ok) {
-                fetchTopics();
+                fetchTopics().then((data) => {
+                    if (data) setTopics(data);
+                });
                 setShowModal(false);
                 setEditingTopic(null);
                 setFormData({ text: '', image: '' });
@@ -71,7 +73,9 @@ export default function TopicsPage() {
         try {
             const res = await fetch(`/api/topics/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                fetchTopics();
+                fetchTopics().then((data) => {
+                    if (data) setTopics(data);
+                });
             }
         } catch (error) {
             console.error('Failed to delete topic:', error);

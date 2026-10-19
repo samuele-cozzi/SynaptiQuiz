@@ -134,6 +134,8 @@ synaptiquiz/
 │       ├── auth.ts                # NextAuth configuration
 │       ├── prisma.ts              # Prisma client
 │       └── i18n/                  # Internationalization
+├── tests/
+│   └── lib/                       # Unit tests for shared library code
 ├── public/
 │   └── manifest.json              # PWA manifest
 ├── docker-compose.yml             # Database container
@@ -181,6 +183,18 @@ npm run type-check
 ```bash
 npm run lint
 ```
+
+**Unit tests:**
+```bash
+npm test
+```
+
+Run tests in watch mode while developing:
+```bash
+npm run test:watch
+```
+
+Place unit tests under `tests/` using the `*.test.ts` or `*.test.tsx` naming convention.
 
 ## 📦 Deployment
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -34,23 +34,23 @@ export default function GamesPage() {
     const [filterStatus, setFilterStatus] = useState('');
     const [filterLanguage, setFilterLanguage] = useState('');
 
-    useEffect(() => {
-        if (status === 'authenticated') {
-            fetchGames();
-        }
-    }, [status]);
-
-    const fetchGames = async () => {
+    const fetchGames = useCallback(async (): Promise<Game[] | undefined> => {
         try {
             const res = await fetch('/api/games');
-            const data = await res.json();
-            setGames(data);
+            return await res.json();
         } catch (error) {
             console.error('Failed to fetch games:', error);
-        } finally {
-            setLoading(false);
+            return undefined;
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (status === 'authenticated') {
+            fetchGames().then((data) => {
+                if (data) setGames(data);
+            }).finally(() => setLoading(false));
+        }
+    }, [status, fetchGames]);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this game?')) return;
@@ -58,7 +58,9 @@ export default function GamesPage() {
         try {
             const res = await fetch(`/api/games/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                fetchGames();
+                fetchGames().then((data) => {
+                    if (data) setGames(data);
+                });
             }
         } catch (error) {
             console.error('Failed to delete game:', error);

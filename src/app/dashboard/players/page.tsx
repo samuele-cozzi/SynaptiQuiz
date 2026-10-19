@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -27,23 +27,23 @@ export default function PlayersPage() {
     const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
     const [formData, setFormData] = useState({ role: 'PLAYER' });
 
-    useEffect(() => {
-        if (status === 'authenticated') {
-            fetchPlayers();
-        }
-    }, [status]);
-
-    const fetchPlayers = async () => {
+    const fetchPlayers = useCallback(async (): Promise<Player[] | undefined> => {
         try {
             const res = await fetch('/api/players');
-            const data = await res.json();
-            setPlayers(data);
+            return await res.json();
         } catch (error) {
             console.error('Failed to fetch players:', error);
-        } finally {
-            setLoading(false);
+            return undefined;
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (status === 'authenticated') {
+            fetchPlayers().then((data) => {
+                if (data) setPlayers(data);
+            }).finally(() => setLoading(false));
+        }
+    }, [status, fetchPlayers]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,7 +58,9 @@ export default function PlayersPage() {
             });
 
             if (res.ok) {
-                fetchPlayers();
+                fetchPlayers().then((data) => {
+                    if (data) setPlayers(data);
+                });
                 setShowModal(false);
                 setEditingPlayer(null);
             }
@@ -73,7 +75,9 @@ export default function PlayersPage() {
         try {
             const res = await fetch(`/api/players/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                fetchPlayers();
+                fetchPlayers().then((data) => {
+                    if (data) setPlayers(data);
+                });
             }
         } catch (error) {
             console.error('Failed to delete player:', error);

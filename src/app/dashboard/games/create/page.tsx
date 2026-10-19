@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -49,48 +49,55 @@ export default function CreateGamePage() {
 
     const [validationError, setValidationError] = useState('');
 
-    useEffect(() => {
-        if (status === 'authenticated') {
-            fetchPlayers();
-            fetchTopics();
+    const fetchPlayers = useCallback(async () => {
+        try {
+            const res = await fetch('/api/players');
+            return await res.json() as Player[];
+        } catch (error) {
+            console.error('Failed to fetch players:', error);
+            return undefined;
         }
-    }, [status]);
+    }, []);
 
-    useEffect(() => {
-        if (formData.language) {
-            fetchQuestions();
+    const fetchQuestions = useCallback(async () => {
+        try {
+            const res = await fetch('/api/questions');
+            const data: Question[] = await res.json();
+            return data.filter((q) => q.language === formData.language);
+        } catch (error) {
+            console.error('Failed to fetch questions:', error);
+            return undefined;
         }
     }, [formData.language]);
 
-    const fetchPlayers = async () => {
-        try {
-            const res = await fetch('/api/players');
-            const data = await res.json();
-            setPlayers(data);
-        } catch (error) {
-            console.error('Failed to fetch players:', error);
-        }
-    };
-
-    const fetchQuestions = async () => {
-        try {
-            const res = await fetch('/api/questions');
-            const data = await res.json();
-            setQuestions(data.filter((q: Question) => q.language === formData.language));
-        } catch (error) {
-            console.error('Failed to fetch questions:', error);
-        }
-    };
-
-    const fetchTopics = async () => {
+    const fetchTopics = useCallback(async () => {
         try {
             const res = await fetch('/api/topics');
-            const data = await res.json();
-            setTopics(data);
+            return await res.json() as Topic[];
         } catch (error) {
             console.error('Failed to fetch topics:', error);
+            return undefined;
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (status === 'authenticated') {
+            fetchPlayers().then((data) => {
+                if (data) setPlayers(data);
+            });
+            fetchTopics().then((data) => {
+                if (data) setTopics(data);
+            });
+        }
+    }, [status, fetchPlayers, fetchTopics]);
+
+    useEffect(() => {
+        if (formData.language) {
+            fetchQuestions().then((data) => {
+                if (data) setQuestions(data);
+            });
+        }
+    }, [formData.language, fetchQuestions]);
 
     const validateGame = (): boolean => {
         if (!formData.name.trim()) {

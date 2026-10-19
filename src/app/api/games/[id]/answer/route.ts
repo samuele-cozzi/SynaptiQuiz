@@ -133,7 +133,7 @@ export async function POST(
 
             const maxScore = Math.max(...finalPlayers.map((p: { score: number }) => p.score));
 
-            for (const p of finalPlayers as any[]) {
+            for (const p of finalPlayers) {
                 await prisma.user.update({
                     where: { id: p.userId },
                     data: {

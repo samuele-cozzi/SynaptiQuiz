@@ -1,33 +1,41 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useCallback } from 'react';
+import type { Prisma } from '@prisma/client';
+import type { Session } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Play, Users, BookOpen, ArrowRight, CheckCircle2, XCircle } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
-interface Player {
-    id: string;
-    username: string;
-    image: string | null;
-}
-
-interface Game {
-    id: string;
-    name: string;
-    status: string;
-    ownerId: string;
-    language: string;
-    currentTurnIndex: number;
-    selectedQuestionId: string | null;
-    players: { userId: string; score: number; user: Player }[];
-    questions: { questionId: string; isPlayed: boolean; question: any }[];
-}
+type Game = Prisma.GameGetPayload<{
+    include: {
+        players: {
+            include: {
+                user: {
+                    select: {
+                        id: true;
+                        username: true;
+                        image: true;
+                    };
+                };
+            };
+        };
+        questions: {
+            include: {
+                question: {
+                    include: {
+                        topic: true;
+                        answers: true;
+                    };
+                };
+            };
+        };
+    };
+}>;
 
 export default function PlayGamePage({ params }: { params: Promise<{ id: string }> }) {
     const { data: session, status } = useSession();
     const router = useRouter();
-    const { t } = useTranslation();
     const [game, setGame] = useState<Game | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -36,26 +44,39 @@ export default function PlayGamePage({ params }: { params: Promise<{ id: string 
     // Unwrap params Promise
     const { id } = use(params);
 
-    useEffect(() => {
-        if (status === 'authenticated') {
-            fetchGame();
-        }
-    }, [status, id]);
-
-    const fetchGame = async () => {
+    const fetchGame = useCallback(async (): Promise<{ game: Game } | { error: string }> => {
         try {
             const res = await fetch(`/api/games/${id}`);
             if (res.ok) {
                 const data = await res.json();
-                setGame(data);
-            } else {
-                setError('Failed to fetch game');
+                return { game: data as Game };
             }
+            return { error: 'Failed to fetch game' };
         } catch (error) {
             console.error('Failed to fetch game:', error);
-            setError('An error occurred');
-        } finally {
-            setLoading(false);
+            return { error: 'An error occurred' };
+        }
+    }, [id]);
+
+    useEffect(() => {
+        if (status === 'authenticated') {
+            fetchGame().then((result) => {
+                if ('game' in result) {
+                    setGame(result.game);
+                } else {
+                    setError(result.error);
+                }
+            }).finally(() => setLoading(false));
+        }
+    }, [status, fetchGame]);
+
+    const refreshGame = async () => {
+        const result = await fetchGame();
+        if ('game' in result) {
+            setGame(result.game);
+            setError('');
+        } else {
+            setError(result.error);
         }
     };
 
@@ -65,9 +86,9 @@ export default function PlayGamePage({ params }: { params: Promise<{ id: string 
             const res = await fetch(`/api/games/${id}/start`, { method: 'POST' });
             if (res.ok) {
                 const updatedGame = await res.json();
-                setGame(updatedGame);
+                setGame(updatedGame as Game);
                 // We might need to refetch to get full relations if the start API only returns the basic game object
-                fetchGame();
+                await refreshGame();
             } else {
                 const data = await res.json();
                 alert(data.error || 'Failed to start game');
@@ -133,7 +154,7 @@ export default function PlayGamePage({ params }: { params: Promise<{ id: string 
                                     <div key={p.userId} className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
                                         <img
                                             src={p.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.user.username}`}
-                                            alt={p.user.username}
+                                            alt={p.user.username ?? 'Player'}
                                             className="w-10 h-10 rounded-full"
                                         />
                                         <span className="text-white font-medium">{p.user.username}</span>
@@ -180,7 +201,7 @@ export default function PlayGamePage({ params }: { params: Promise<{ id: string 
     }
 
     if (game.status === 'STARTED') {
-        return <GamePlay game={game} session={session} onUpdate={fetchGame} />;
+        return <GamePlay game={game} session={session} onUpdate={refreshGame} />;
     }
 
     if (game.status === 'ENDED') {
@@ -191,7 +212,11 @@ export default function PlayGamePage({ params }: { params: Promise<{ id: string 
 }
 
 // Sub-components
-function GamePlay({ game, session, onUpdate }: { game: Game, session: any, onUpdate: () => void }) {
+function GamePlay({ game, session, onUpdate }: { game: Game, session: Session | null, onUpdate: () => Promise<void> }) {
+    const [processing, setProcessing] = useState(false);
+    const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
+    const [feedback, setFeedback] = useState<{ correct: boolean, choice: string, correctId: string } | null>(null);
+
     if (!game.players || game.players.length === 0) {
         return <div className="text-white text-center py-12">Waiting for data...</div>;
     }
@@ -210,9 +235,6 @@ function GamePlay({ game, session, onUpdate }: { game: Game, session: any, onUpd
     }
 
     const isMyTurn = session?.user?.id === currentPlayer.userId || session?.user?.role === 'ADMIN';
-    const [processing, setProcessing] = useState(false);
-    const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
-    const [feedback, setFeedback] = useState<{ correct: boolean, choice: string, correctId: string } | null>(null);
 
     const selectQuestion = async (questionId: string) => {
         setProcessing(true);
@@ -265,7 +287,7 @@ function GamePlay({ game, session, onUpdate }: { game: Game, session: any, onUpd
     };
 
     // Group unplayed questions by topic
-    const topicsMap: Record<string, { topic: any, questions: any[] }> = {};
+    const topicsMap: Record<string, { topic: Game['questions'][number]['question']['topic'], questions: Game['questions'] }> = {};
     game.questions.forEach(gq => {
         if (!gq.isPlayed) {
             const tId = gq.question.topic.id;
@@ -292,7 +314,7 @@ function GamePlay({ game, session, onUpdate }: { game: Game, session: any, onUpd
                 <div className="flex items-center gap-3">
                     <img
                         src={currentPlayer.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentPlayer.user.username}`}
-                        alt={currentPlayer.user.username}
+                        alt={currentPlayer.user.username ?? 'Player'}
                         className="w-10 h-10 rounded-full ring-2 ring-cyan-400"
                     />
                     <div>
@@ -321,11 +343,11 @@ function GamePlay({ game, session, onUpdate }: { game: Game, session: any, onUpd
                         {Object.values(topicsMap).map(({ topic, questions }) => (
                             <div key={topic.id} className="bg-white/5 rounded-xl p-4 border border-white/10">
                                 <div className="flex items-center gap-3 mb-4">
-                                    {topic.image && <img src={topic.image} className="w-8 h-8 rounded-lg" />}
+                                    {topic.image && <img src={topic.image} alt="" className="w-8 h-8 rounded-lg" />}
                                     <h3 className="text-lg font-semibold text-white">{topic.text}</h3>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    {questions.map((gq: any) => (
+                                    {questions.map((gq) => (
                                         <button
                                             key={gq.questionId}
                                             disabled={!isMyTurn || processing}
@@ -374,7 +396,7 @@ function GamePlay({ game, session, onUpdate }: { game: Game, session: any, onUpd
                             </h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                                {activeQuestion?.answers.map((a: any) => (
+                                {activeQuestion?.answers.map((a) => (
                                     <button
                                         key={a.id}
                                         disabled={!isMyTurn || processing}
@@ -421,7 +443,7 @@ function GameResults({ game, onBack }: { game: Game, onBack: () => void }) {
                 <div className="inline-block p-4 bg-cyan-500/20 rounded-full mb-6 ring-4 ring-cyan-400/30">
                     <img
                         src={winner.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${winner.user.username}`}
-                        alt={winner.user.username}
+                        alt={winner.user.username ?? 'Player'}
                         className="w-24 h-24 rounded-full"
                     />
                 </div>
@@ -444,7 +466,7 @@ function GameResults({ game, onBack }: { game: Game, onBack: () => void }) {
                             </span>
                             <img
                                 src={p.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.user.username}`}
-                                alt={p.user.username}
+                                alt={p.user.username ?? 'Player'}
                                 className="w-10 h-10 rounded-full"
                             />
                             <span className="text-white font-bold text-lg">{p.user.username}</span>

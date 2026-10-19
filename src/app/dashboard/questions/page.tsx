@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -58,34 +58,36 @@ export default function QuestionsPage() {
         ] as Answer[],
     });
 
-    useEffect(() => {
-        if (status === 'authenticated') {
-            fetchQuestions();
-            fetchTopics();
-        }
-    }, [status]);
-
-    const fetchTopics = async () => {
+    const fetchTopics = useCallback(async (): Promise<Topic[] | undefined> => {
         try {
             const res = await fetch('/api/topics');
-            const data = await res.json();
-            setTopics(data);
+            return await res.json();
         } catch (error) {
             console.error('Failed to fetch topics:', error);
+            return undefined;
         }
-    };
+    }, []);
 
-    const fetchQuestions = async () => {
+    const fetchQuestions = useCallback(async (): Promise<Question[] | undefined> => {
         try {
             const res = await fetch('/api/questions');
-            const data = await res.json();
-            setQuestions(data);
+            return await res.json();
         } catch (error) {
             console.error('Failed to fetch questions:', error);
-        } finally {
-            setLoading(false);
+            return undefined;
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (status === 'authenticated') {
+            fetchQuestions().then((data) => {
+                if (data) setQuestions(data);
+            }).finally(() => setLoading(false));
+            fetchTopics().then((data) => {
+                if (data) setTopics(data);
+            });
+        }
+    }, [status, fetchQuestions, fetchTopics]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -113,7 +115,9 @@ export default function QuestionsPage() {
             });
 
             if (res.ok) {
-                fetchQuestions();
+                fetchQuestions().then((data) => {
+                    if (data) setQuestions(data);
+                });
                 setShowModal(false);
                 setEditingQuestion(null);
                 resetForm();
@@ -129,7 +133,9 @@ export default function QuestionsPage() {
         try {
             const res = await fetch(`/api/questions/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                fetchQuestions();
+                fetchQuestions().then((data) => {
+                    if (data) setQuestions(data);
+                });
             }
         } catch (error) {
             console.error('Failed to delete question:', error);
@@ -173,17 +179,15 @@ export default function QuestionsPage() {
         });
     };
 
-    const updateAnswer = (index: number, field: keyof Answer, value: any) => {
-        const newAnswers = [...formData.answers];
-        if (field === 'correct' && value === true) {
+    const updateAnswer = <K extends keyof Answer>(index: number, field: K, value: Answer[K]) => {
+        const newAnswers = formData.answers.map((answer, answerIndex) => {
+            if (field === 'correct' && value === true) {
             // Only one correct answer allowed
-            newAnswers.forEach((a, i) => {
-                a.correct = i === index;
-            });
-        } else {
-            newAnswers[index] = { ...newAnswers[index], [field]: value };
-        }
-        setFormData({ ...formData, answers: newAnswers });
+                return { ...answer, correct: answerIndex === index };
+            }
+            return answerIndex === index ? { ...answer, [field]: value } : answer;
+        });
+        setFormData(current => ({ ...current, answers: newAnswers }));
     };
 
     const filteredQuestions = questions.filter(q => {

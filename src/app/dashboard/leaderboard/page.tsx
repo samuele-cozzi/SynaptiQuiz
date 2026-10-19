@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Trophy, Medal, Star, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -20,25 +20,26 @@ export default function LeaderboardPage() {
     const [leaderboard, setLeaderboard] = useState<PlayerStats[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (status === 'authenticated') {
-            fetchLeaderboard();
-        }
-    }, [status]);
-
-    const fetchLeaderboard = async () => {
+    const fetchLeaderboard = useCallback(async (): Promise<PlayerStats[] | undefined> => {
         try {
             const res = await fetch('/api/leaderboard');
             if (res.ok) {
-                const data = await res.json();
-                setLeaderboard(data);
+                return await res.json();
             }
+            return undefined;
         } catch (error) {
             console.error('Failed to fetch leaderboard:', error);
-        } finally {
-            setLoading(false);
+            return undefined;
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (status === 'authenticated') {
+            fetchLeaderboard().then((data) => {
+                if (data) setLeaderboard(data);
+            }).finally(() => setLoading(false));
+        }
+    }, [status, fetchLeaderboard]);
 
     if (loading) {
         return (

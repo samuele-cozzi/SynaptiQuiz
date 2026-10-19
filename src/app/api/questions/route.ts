@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { isQuestionInput } from '@/lib/question-input';
 
 export async function GET() {
     try {
@@ -30,16 +31,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
-        const { text, difficulty, language, topicId, answers } = await req.json();
+        const input: unknown = await req.json();
 
-        if (!text || !topicId || !answers || answers.length !== 4) {
+        if (
+            !isQuestionInput(input) ||
+            !input.text ||
+            !input.topicId
+        ) {
             return NextResponse.json(
                 { error: 'Invalid question data' },
                 { status: 400 }
             );
         }
 
-        const correctAnswers = answers.filter((a: any) => a.correct).length;
+        const { text, difficulty, language, topicId, answers } = input;
+        const correctAnswers = answers.filter((a) => a.correct).length;
         if (correctAnswers !== 1) {
             return NextResponse.json(
                 { error: 'Exactly one answer must be correct' },
@@ -54,7 +60,7 @@ export async function POST(req: NextRequest) {
                 language,
                 topicId,
                 answers: {
-                    create: answers.map((a: any) => ({
+                    create: answers.map((a) => ({
                         text: a.text,
                         correct: a.correct,
                         plausibility: a.plausibility,
