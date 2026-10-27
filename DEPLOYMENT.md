@@ -223,8 +223,8 @@ NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=false
 # Build and start
 docker-compose -f docker-compose.prod.yml up -d --build
 
-# Run migrations
-docker-compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
+# Sync the database schema
+docker-compose -f docker-compose.prod.yml exec app npx prisma db push
 
 # View logs
 docker-compose -f docker-compose.prod.yml logs -f app
@@ -352,12 +352,16 @@ docker-compose logs db
 docker-compose exec db psql -U postgres -d synaptiquiz
 ```
 
-### Migration Issues
+### Database Schema Sync Issues
 ```bash
-# Reset and re-run migrations
-npx prisma migrate reset
-npx prisma migrate deploy
+# Check the selected Prisma schema
+npx prisma validate
+
+# Apply the Prisma schema to the configured database
+npx prisma db push
 ```
+
+This project uses `prisma db push` rather than migration histories. It does not provide migration-based rollbacks; review any data-loss warnings before confirming schema changes.
 
 ### Build Failures
 ```bash

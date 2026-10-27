@@ -44,7 +44,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma engine for migrations if needed
+# Copy Prisma schema and configuration for database synchronization
 COPY --from=builder /app/prisma ./prisma
 
 USER nextjs

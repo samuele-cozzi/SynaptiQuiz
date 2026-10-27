@@ -30,4 +30,4 @@ services:
       DATABASE_URL: ${DATABASE_URL:-file:./sqlite-data/synaptiquiz.db}
     ports:
       - "3000:3000"
-    command: sh -c "npm install && npx prisma migrate deploy && npm run dev"
+    command: sh -c "npm install && npx prisma db push && npm run dev"

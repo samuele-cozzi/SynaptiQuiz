@@ -82,9 +82,9 @@ cp .env.example .env
 
 Set `NEXTAUTH_SECRET` in `.env`. SQLite is the default and stores the local database at `prisma/dev.db`.
 
-4. **Run migrations**
+4. **Sync the database schema**
 ```bash
-npm run db:migrate
+npm run db:push
 ```
 
 5. **Start the development server**
@@ -97,17 +97,14 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Use PostgreSQL instead
 
-Set `DATABASE_PROVIDER=postgresql` and a PostgreSQL `DATABASE_URL` in `.env` before installing dependencies or generating Prisma Client. Start PostgreSQL (for example, `docker compose --profile postgresql up -d postgres`), then run `npm run db:migrate`. When using the Compose app container, use `postgres` as the database hostname; when running the app on your host, use `localhost`. The PostgreSQL schema and existing migration history are kept separately from SQLite. Existing PostgreSQL URLs are also detected automatically if `DATABASE_PROVIDER` is unset.
+Set `DATABASE_PROVIDER=postgresql` and a PostgreSQL `DATABASE_URL` in `.env` before installing dependencies or generating Prisma Client. Start PostgreSQL (for example, `docker compose --profile postgresql up -d postgres`), then run `npm run db:push`. When using the Compose app container, use `postgres` as the database hostname; when running the app on your host, use `localhost`. Both providers now use the shared `prisma/schema.prisma`; Prisma's required PostgreSQL-specific provider declaration is generated automatically. No migration history is maintained. Existing PostgreSQL URLs are also detected automatically if `DATABASE_PROVIDER` is unset.
 
 ## 📁 Project Structure
 
 ```
 synaptiquiz/
 ├── prisma/
-│   ├── schema.prisma              # SQLite schema (default)
-│   ├── schema.postgresql.prisma   # PostgreSQL schema
-│   ├── migrations-sqlite/         # SQLite migration history
-│   └── migrations/                # PostgreSQL migration history
+│   ├── schema.prisma              # Shared database schema
 ├── src/
 │   ├── app/
 │   │   ├── api/                   # API routes
@@ -149,15 +146,12 @@ synaptiquiz/
 npx prisma studio
 ```
 
-**Create a new migration:**
+**Apply schema changes to the database:**
 ```bash
-npx prisma migrate dev --name migration_name
+npm run db:push
 ```
 
-**Reset database:**
-```bash
-npx prisma migrate reset
-```
+`db:push` does not create migration files or support migration-based rollbacks. Review Prisma's warnings carefully before applying schema changes that may remove or alter data.
 
 ### Code Quality
 
@@ -190,7 +184,7 @@ Place unit tests under `tests/` using the `*.test.ts` or `*.test.tsx` naming con
 1. Create a Supabase project and get the database URL
 2. Deploy to Vercel
 3. Add environment variables in Vercel dashboard
-4. Run migrations: `npx prisma migrate deploy`
+4. Sync the database schema: `npx prisma db push`
 
 ### Option 2: Docker (Self-Hosted)
 
