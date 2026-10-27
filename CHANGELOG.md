@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.7](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.6...v0.1.7) (2026-10-27)
+
+
+### Features
+
+* update database handling to use schema synchronization with Prisma ([c468303](https://github.com/samuele-cozzi/SynaptiQuiz/commit/c46830365cea58b3e5ce73a41d3326c0b9bf8094))
+
 ### [0.1.6](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.5...v0.1.6) (2026-10-27)
 
 
