@@ -5,7 +5,8 @@ A modern, multiplayer quiz game application built with Next.js, featuring role-b
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![Prisma](https://img.shields.io/badge/Prisma-7-2D3748)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-336791)
+![SQLite](https://img.shields.io/badge/SQLite-default-003B57)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-optional-336791)
 
 ## ✨ Features
 
@@ -58,8 +59,8 @@ A modern, multiplayer quiz game application built with Next.js, featuring role-b
 
 ### Prerequisites
 - Node.js 20+
-- Docker & Docker Compose (for local database)
-- PostgreSQL (or use Docker)
+- SQLite (included; used by default)
+- PostgreSQL (optional)
 
 ### Installation
 
@@ -79,48 +80,34 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env`:
-```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/synaptiquiz"
-NEXTAUTH_SECRET="your-secret-key-here"
-NEXTAUTH_URL="http://localhost:3000"
+Set `NEXTAUTH_SECRET` in `.env`. SQLite is the default and stores the local database at `prisma/dev.db`.
 
-# Optional: Google OAuth
-GOOGLE_CLIENT_ID=""
-GOOGLE_CLIENT_SECRET=""
-NEXT_PUBLIC_GOOGLE_AUTH_ENABLED="false"
-```
-
-4. **Start the database**
+4. **Run migrations**
 ```bash
-docker-compose up -d
+npm run db:migrate
 ```
 
-5. **Run migrations**
-```bash
-npx prisma migrate dev
-```
-
-6. **Generate Prisma Client**
-```bash
-npx prisma generate
-```
-
-7. **Start the development server**
+5. **Start the development server**
 ```bash
 npm run dev
 ```
 
-8. **Open your browser**
+6. **Open your browser**
 Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Use PostgreSQL instead
+
+Set `DATABASE_PROVIDER=postgresql` and a PostgreSQL `DATABASE_URL` in `.env` before installing dependencies or generating Prisma Client. Start PostgreSQL (for example, `docker compose --profile postgresql up -d postgres`), then run `npm run db:migrate`. When using the Compose app container, use `postgres` as the database hostname; when running the app on your host, use `localhost`. The PostgreSQL schema and existing migration history are kept separately from SQLite. Existing PostgreSQL URLs are also detected automatically if `DATABASE_PROVIDER` is unset.
 
 ## 📁 Project Structure
 
 ```
 synaptiquiz/
 ├── prisma/
-│   ├── schema.prisma              # Database schema
-│   └── migrations/                # Migration history
+│   ├── schema.prisma              # SQLite schema (default)
+│   ├── schema.postgresql.prisma   # PostgreSQL schema
+│   ├── migrations-sqlite/         # SQLite migration history
+│   └── migrations/                # PostgreSQL migration history
 ├── src/
 │   ├── app/
 │   │   ├── api/                   # API routes
@@ -138,7 +125,7 @@ synaptiquiz/
 │   └── lib/                       # Unit tests for shared library code
 ├── public/
 │   └── manifest.json              # PWA manifest
-├── docker-compose.yml             # Database container
+├── docker-compose.yml             # SQLite by default; PostgreSQL profile optional
 └── package.json
 ```
 
@@ -248,7 +235,8 @@ The application supports light and dark themes with:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `DATABASE_PROVIDER` | No | `sqlite` (default) or `postgresql` |
+| `DATABASE_URL` | No | SQLite file URL by default (`file:./prisma/dev.db`); required for PostgreSQL |
 | `NEXTAUTH_SECRET` | Yes | Secret for NextAuth.js (generate with `openssl rand -base64 32`) |
 | `NEXTAUTH_URL` | Yes | Base URL of your application |
 | `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |

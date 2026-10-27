@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## Unreleased
+
+### Changed
+
+* Make SQLite the default database while retaining PostgreSQL as an opt-in provider.
+
 ### [0.1.4](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.3...v0.1.4) (2025-12-23)
 
 

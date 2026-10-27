@@ -4,6 +4,8 @@ This guide covers deploying SynaptiQuiz to production using either Vercel + Supa
 
 ## Option 1: Vercel + Supabase
 
+Vercel's local filesystem is ephemeral, so use PostgreSQL for Vercel deployments rather than the default SQLite database.
+
 ### Prerequisites
 - GitHub account
 - Vercel account
@@ -43,6 +45,7 @@ git push -u origin main
 In Vercel project settings, add these environment variables:
 
 ```env
+DATABASE_PROVIDER=postgresql
 DATABASE_URL=<your-supabase-connection-string>
 NEXTAUTH_SECRET=<generate-with-openssl-rand-base64-32>
 NEXTAUTH_URL=<your-vercel-url>
@@ -62,6 +65,8 @@ NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true
 
 ## Option 2: Self-Hosted Docker
 
+The root `docker-compose.yml` runs the app against a persistent SQLite file by default. To use PostgreSQL, enable the `postgresql` profile and set the PostgreSQL provider and URL in `.env`. For the Compose app container, the database hostname is `postgres`.
+
 ### Prerequisites
 - Docker & Docker Compose
 - Domain name (optional but recommended)
@@ -74,6 +79,10 @@ Create `Dockerfile` in project root:
 ```dockerfile
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
+ARG DATABASE_PROVIDER=sqlite
+ARG DATABASE_URL=file:./prisma/dev.db
+ENV DATABASE_PROVIDER=${DATABASE_PROVIDER}
+ENV DATABASE_URL=${DATABASE_URL}
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -83,6 +92,10 @@ RUN [ -f package-lock.json ] && npm ci || npm install
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
+ARG DATABASE_PROVIDER=sqlite
+ARG DATABASE_URL=file:./prisma/dev.db
+ENV DATABASE_PROVIDER=${DATABASE_PROVIDER}
+ENV DATABASE_URL=${DATABASE_URL}
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -164,11 +177,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        DATABASE_PROVIDER: postgresql
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/synaptiquiz
     container_name: synaptiquiz-app
     restart: always
     ports:
       - "3000:3000"
     environment:
+      DATABASE_PROVIDER: postgresql
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@db:5432/synaptiquiz
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXTAUTH_URL: ${NEXTAUTH_URL}

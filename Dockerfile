@@ -1,5 +1,9 @@
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
+ARG DATABASE_PROVIDER=sqlite
+ARG DATABASE_URL=file:./prisma/dev.db
+ENV DATABASE_PROVIDER=${DATABASE_PROVIDER}
+ENV DATABASE_URL=${DATABASE_URL}
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -10,6 +14,10 @@ RUN [ -f package-lock.json ] && npm ci || npm install
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
+ARG DATABASE_PROVIDER=sqlite
+ARG DATABASE_URL=file:./prisma/dev.db
+ENV DATABASE_PROVIDER=${DATABASE_PROVIDER}
+ENV DATABASE_URL=${DATABASE_URL}
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

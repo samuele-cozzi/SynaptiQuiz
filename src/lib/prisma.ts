@@ -1,10 +1,15 @@
 import { PrismaClient } from '@prisma/client'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
+import { getDatabaseProvider, getDatabaseUrl } from '../../prisma/database-provider'
 
 const prismaClientSingleton = () => {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-    const adapter = new PrismaPg(pool)
+    const provider = getDatabaseProvider()
+    const databaseUrl = getDatabaseUrl(provider)
+    const adapter = provider === 'postgresql'
+        ? new PrismaPg(new Pool({ connectionString: databaseUrl }))
+        : new PrismaLibSql({ url: databaseUrl })
     return new PrismaClient({ adapter })
 }
 

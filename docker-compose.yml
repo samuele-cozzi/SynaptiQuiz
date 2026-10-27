@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:18-alpine
     container_name: synaptiquiz_db
+    profiles: ["postgresql"]
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -9,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres-data:/home/samuele/.data/synaptiquiz/postgresql
+      - ./postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
@@ -22,13 +23,11 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
+      - ./sqlite-data:/app/sqlite-data
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/synaptiquiz
-      # Ensure other env vars are passed or loaded from .env
+      DATABASE_PROVIDER: ${DATABASE_PROVIDER:-}
+      DATABASE_URL: ${DATABASE_URL:-file:./sqlite-data/synaptiquiz.db}
     ports:
       - "3000:3000"
-    command: sh -c "rm -rf .next && npm install && npx prisma generate && npm run dev"
-    depends_on:
-      postgres:
-        condition: service_healthy
+    command: sh -c "npm install && npx prisma migrate deploy && npm run dev"

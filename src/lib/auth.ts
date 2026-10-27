@@ -4,7 +4,15 @@ import prisma from "@/lib/prisma";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
-import { Role } from "@prisma/client";
+import { isRole, type Role } from "./roles";
+
+function toAuthUser<T extends { role: string }>(user: T): (T & { role: Role }) | null {
+    if (!isRole(user.role)) {
+        console.error(`User ${'id' in user ? user.id : ''} has an invalid role.`);
+        return null;
+    }
+    return { ...user, role: user.role };
+}
 
 declare module "next-auth" {
     interface Session {
@@ -70,7 +78,7 @@ export const authOptions: NextAuthOptions = {
                     });
 
                     if (user) {
-                        if (user.isGuest) return user;
+                        if (user.isGuest) return toAuthUser(user);
                         // If exists but not guest, require password (fail this strategy)
                         throw new Error("Username already taken by a registered user.");
                     }
@@ -85,7 +93,7 @@ export const authOptions: NextAuthOptions = {
                             image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${credentials.username}`
                         }
                     });
-                    return newUser;
+                    return toAuthUser(newUser);
                 }
 
                 // REGISTERED USER LOGIN LOGIC
@@ -105,7 +113,7 @@ export const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                return user;
+                return toAuthUser(user);
             }
         }),
     ],
