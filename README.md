@@ -97,7 +97,7 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Use PostgreSQL instead
 
-Set `DATABASE_PROVIDER=postgresql` and a PostgreSQL `DATABASE_URL` in `.env` before installing dependencies or generating Prisma Client. Start PostgreSQL (for example, `docker compose --profile postgresql up -d postgres`), then run `npm run db:push`. When using the Compose app container, use `postgres` as the database hostname; when running the app on your host, use `localhost`. Both providers now use the shared `prisma/schema.prisma`; Prisma's required PostgreSQL-specific provider declaration is generated automatically. No migration history is maintained. Existing PostgreSQL URLs are also detected automatically if `DATABASE_PROVIDER` is unset.
+Set `DATABASE_PROVIDER=postgresql` and a PostgreSQL `DATABASE_URL` in `.env` before installing dependencies or generating Prisma Client. Start PostgreSQL (for example, `docker compose --env-file .env -f deploy/docker-compose.yml --profile postgresql up -d postgres`), then run `npm run db:push`. When using the Compose app container, use `postgres` as the database hostname; when running the app on your host, use `localhost`. Both providers now use the shared `prisma/schema.prisma`; Prisma's required PostgreSQL-specific provider declaration is generated automatically. No migration history is maintained. Existing PostgreSQL URLs are also detected automatically if `DATABASE_PROVIDER` is unset.
 
 ## 📁 Project Structure
 
@@ -120,9 +120,13 @@ synaptiquiz/
 │       └── i18n/                  # Internationalization
 ├── tests/
 │   └── lib/                       # Unit tests for shared library code
+├── deploy/
+│   ├── Dockerfile                 # Production image
+│   ├── Dockerfile.dockerignore    # Docker build exclusions
+│   ├── docker-compose.yml         # Local app and optional PostgreSQL
+│   └── DEPLOYMENT.md              # Deployment guide
 ├── public/
 │   └── manifest.json              # PWA manifest
-├── docker-compose.yml             # SQLite by default; PostgreSQL profile optional
 └── package.json
 ```
 
@@ -188,7 +192,7 @@ Place unit tests under `tests/` using the `*.test.ts` or `*.test.tsx` naming con
 
 ### Option 2: Docker (Self-Hosted)
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+See [DEPLOYMENT.md](./deploy/DEPLOYMENT.md) for detailed instructions.
 
 ## 🎯 User Roles
 

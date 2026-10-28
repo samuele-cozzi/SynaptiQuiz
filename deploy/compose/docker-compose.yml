@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - ../postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
@@ -22,9 +22,9 @@ services:
     container_name: synaptiquiz_app
     working_dir: /app
     volumes:
-      - ./:/app
-      - ./sqlite-data:/app/sqlite-data
-    env_file: .env
+      - ../:/app
+      - ../sqlite-data:/app/sqlite-data
+    env_file: ../.env
     environment:
       DATABASE_PROVIDER: ${DATABASE_PROVIDER:-}
       DATABASE_URL: ${DATABASE_URL:-file:./sqlite-data/synaptiquiz.db}
