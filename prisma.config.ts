@@ -16,6 +16,10 @@ if (isPostgresql) {
   const postgresqlSchema = sharedSchema
     .replace('provider = "sqlite"', 'provider = "postgresql"')
     .replace(
+      'provider = "prisma-client-js"',
+      'provider = "prisma-client-js"\n  output   = "../src/generated/prisma/postgresql"'
+    )
+    .replace(
       "model Account {",
       "enum Role {\n  ADMIN\n  EDITOR\n  PLAYER\n}\n\nenum GameStatus {\n  CREATED\n  STARTED\n  ENDED\n}\n\nmodel Account {"
     )

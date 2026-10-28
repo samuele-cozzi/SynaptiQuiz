@@ -97,7 +97,7 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Use PostgreSQL instead
 
-Set `DATABASE_PROVIDER=postgresql` and a PostgreSQL `DATABASE_URL` in `.env` before installing dependencies or generating Prisma Client. Start PostgreSQL (for example, `docker compose --env-file .env -f deploy/docker-compose.yml --profile postgresql up -d postgres`), then run `npm run db:push`. When using the Compose app container, use `postgres` as the database hostname; when running the app on your host, use `localhost`. Both providers now use the shared `prisma/schema.prisma`; Prisma's required PostgreSQL-specific provider declaration is generated automatically. No migration history is maintained. Existing PostgreSQL URLs are also detected automatically if `DATABASE_PROVIDER` is unset.
+Set `DATABASE_PROVIDER=postgresql` and a PostgreSQL `DATABASE_URL` in `.env`. Both SQLite and PostgreSQL Prisma Clients are generated automatically during dependency installation, and the app selects the matching client and driver adapter at startup; changing providers does not require regenerating the clients. Start PostgreSQL (for example, `docker compose --env-file .env -f deploy/docker-compose.yml --profile postgresql up -d postgres`), then run `npm run db:push`. When using the Compose app container, use `postgres` as the database hostname; when running the app on your host, use `localhost`. No migration history is maintained. Existing PostgreSQL URLs are detected automatically if `DATABASE_PROVIDER` is unset.
 
 ## 📁 Project Structure
 

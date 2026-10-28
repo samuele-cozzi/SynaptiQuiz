@@ -10,6 +10,8 @@ WORKDIR /app
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./prisma.config.ts
+COPY scripts ./scripts/
 RUN [ -f package-lock.json ] && npm ci || npm install
 
 # Stage 2: Builder
@@ -21,9 +23,7 @@ ENV DATABASE_URL=${DATABASE_URL}
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Generate Prisma Client
-RUN npx prisma generate
+COPY --from=deps /app/src/generated/prisma ./src/generated/prisma
 
 # Build Next.js
 ENV NEXT_TELEMETRY_DISABLED 1

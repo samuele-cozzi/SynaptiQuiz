@@ -9,6 +9,7 @@ node_modules
 docker-compose.yml
 Dockerfile
 deploy/
+src/generated/
 README.md
 LICENSE
 .vscode

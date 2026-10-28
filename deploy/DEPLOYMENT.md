@@ -44,17 +44,19 @@ Use `postgres` as the database hostname from a container, or `localhost` when co
 
 ## Production Docker image
 
-Build from the repository root so the Docker build context includes the application source:
+Build from the repository root so the Docker build context includes the application source. The image contains generated Prisma Clients for both SQLite and PostgreSQL; the app selects one at startup:
 
 ```bash
 docker build -f deploy/Dockerfile -t synaptiquiz .
 ```
 
-Set production values in `.env`, including a reachable PostgreSQL `DATABASE_URL`, then run:
+Set `DATABASE_PROVIDER` and the matching `DATABASE_URL` in the runtime environment. For PostgreSQL, for example:
 
 ```bash
-docker run --env-file .env -p 3000:3000 synaptiquiz
+docker run -e DATABASE_PROVIDER=postgresql --env-file .env -p 3000:3000 synaptiquiz
 ```
+
+For SQLite, set `DATABASE_PROVIDER=sqlite` and use a `file:` URL. Client generation happens during dependency installation/image build; changing the runtime provider does not require regenerating Prisma Client.
 
 Put the app behind a TLS-terminating reverse proxy such as Nginx or a managed load balancer for production use.
 
