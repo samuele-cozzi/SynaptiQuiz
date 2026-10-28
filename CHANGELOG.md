@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.9](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.8...v0.1.9) (2026-10-28)
+
+
+### Features
+
+* enhance database support with PostgreSQL integration and client generation ([f91bbfc](https://github.com/samuele-cozzi/SynaptiQuiz/commit/f91bbfca64d757d4e9df779fb58f90a19a8f21b4))
+
 ### [0.1.8](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.7...v0.1.8) (2026-10-28)
 
 ### [0.1.7](https://github.com/samuele-cozzi/SynaptiQuiz/compare/v0.1.6...v0.1.7) (2026-10-27)
