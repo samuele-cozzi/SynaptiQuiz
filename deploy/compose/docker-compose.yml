@@ -22,10 +22,10 @@ services:
     container_name: synaptiquiz_app
     volumes:
       - ./sqlite-data:/app/sqlite-data
-    env_file: .env
+    # env_file: ./.env
     environment:
       DATABASE_PROVIDER: ${DATABASE_PROVIDER:-sqlite}
       DATABASE_URL: ${DATABASE_URL:-file:./sqlite-data/synaptiquiz.db}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
     ports:
       - "3000:3000"
-    command: sh -c "npm run db:push && npm run dev"
