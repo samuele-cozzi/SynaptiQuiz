@@ -7,7 +7,7 @@ const prismaCli = fileURLToPath(
 
 for (const [provider, databaseUrl] of [
   ["sqlite", "file:./prisma/dev.db"],
-  ["postgresql", "postgresql://postgres:postgres@localhost:5432/synaptiquiz"],
+  ["postgresql", "postgresql://postgres:password@localhost:5432/synaptiquiz"],
 ]) {
   const result = spawnSync(process.execPath, [prismaCli, "generate"], {
     env: {

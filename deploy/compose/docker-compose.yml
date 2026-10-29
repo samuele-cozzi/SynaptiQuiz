@@ -4,13 +4,13 @@ services:
     container_name: synaptiquiz_db
     profiles: ["postgresql"]
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: synaptiquiz
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-synaptiquiz}
     ports:
       - "5432:5432"
     # volumes:
-    #   - ../postgres-data:/var/lib/postgresql/data
+    #   - ./postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
@@ -18,16 +18,14 @@ services:
       retries: 5
 
   app:
-    image: node:20-alpine
+    image: samuelecozzi/synaptiquiz:latest
     container_name: synaptiquiz_app
-    working_dir: /app
     volumes:
-      - ../:/app
-      - ../sqlite-data:/app/sqlite-data
-    env_file: ../.env
+      - ./sqlite-data:/app/sqlite-data
+    env_file: .env
     environment:
-      DATABASE_PROVIDER: ${DATABASE_PROVIDER:-}
+      DATABASE_PROVIDER: ${DATABASE_PROVIDER:-sqlite}
       DATABASE_URL: ${DATABASE_URL:-file:./sqlite-data/synaptiquiz.db}
     ports:
       - "3000:3000"
-    command: sh -c "npm install && npx prisma db push && npm run dev"
+    command: sh -c "npm run db:push && npm run dev"

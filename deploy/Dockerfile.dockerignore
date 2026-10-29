@@ -9,6 +9,9 @@ node_modules
 docker-compose.yml
 Dockerfile
 deploy/
+prisma/*.db
+prisma/*.db-journal
+sqlite-data/
 src/generated/
 README.md
 LICENSE
