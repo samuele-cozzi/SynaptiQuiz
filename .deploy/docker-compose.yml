@@ -1,0 +1,39 @@
+services:
+  webapp:
+    image: ${DOCKERHUB_USERNAME:-synaptiquiz}/synaptiquiz:latest-postgresql
+    build:
+      context: .
+      args:
+        DATABASE_PROVIDER: postgresql
+    restart: unless-stopped
+    environment:
+      DATABASE_PROVIDER: postgresql
+      DATABASE_URL: postgresql://synaptiquiz:${POSTGRES_PASSWORD:-localpassword}@db:5432/synaptiquiz?schema=public
+      SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-change-before-deploying}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-password01}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    ports:
+      - "${PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: synaptiquiz
+      POSTGRES_USER: synaptiquiz
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localpassword}
+    volumes:
+      - synaptiquiz_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synaptiquiz -d synaptiquiz"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  synaptiquiz_postgres:

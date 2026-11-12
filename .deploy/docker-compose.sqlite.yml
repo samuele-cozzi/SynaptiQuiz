@@ -1,0 +1,23 @@
+services:
+  webapp:
+    image: ${DOCKERHUB_USERNAME:-synaptiquiz}/synaptiquiz:latest-sqlite
+    build:
+      context: .
+      args:
+        DATABASE_PROVIDER: sqlite
+    restart: unless-stopped
+    environment:
+      DATABASE_PROVIDER: sqlite
+      DATABASE_URL: file:/data/synaptiquiz.db
+      SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-change-before-deploying}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-password01}
+      GOOGLE_CLIENT_ID: ""
+      GOOGLE_CLIENT_SECRET: ""
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - synaptiquiz_sqlite:/data
+
+volumes:
+  synaptiquiz_sqlite:

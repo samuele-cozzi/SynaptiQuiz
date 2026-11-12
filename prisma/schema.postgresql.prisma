@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  username     String       @unique
+  passwordHash String?
+  avatar       String?
+  role         String       @default("player")
+  isGuest      Boolean      @default(false)
+  isActive     Boolean      @default(true)
+  locale       String       @default("en")
+  theme        String       @default("light")
+  defaultLanguage String    @default("en")
+  createdAt    DateTime     @default(now())
+  gamesCreated Game[]       @relation("GameCreator")
+  gamePlayers  GamePlayer[]
+  answers      GameAnswer[]
+  identities   AuthIdentity[]
+}
+
+model AuthIdentity {
+  id                String @id @default(cuid())
+  provider          String
+  providerAccountId String @unique
+  userId            String
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Topic {
+  id        String        @id @default(cuid())
+  text      String        @unique
+  image     String?
+  createdAt DateTime      @default(now())
+  questions QuestionSet[]
+}
+
+model QuestionSet {
+  id        String            @id @default(cuid())
+  topicId   String
+  difficulty Int
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  topic     Topic             @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  variants  QuestionVariant[]
+}
+
+model QuestionVariant {
+  id         String         @id @default(cuid())
+  questionId String
+  language   String
+  text       String
+  question   QuestionSet    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers    Answer[]
+  gameItems  GameQuestion[]
+
+  @@unique([questionId, language])
+}
+
+model Answer {
+  id         String          @id @default(cuid())
+  variantId  String
+  position   Int
+  text       String
+  correct    Boolean         @default(false)
+  plausibility Int           @default(50)
+  variant    QuestionVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, position])
+}
+
+model Game {
+  id        String        @id @default(cuid())
+  name      String
+  language  String
+  status    String        @default("draft")
+  turnVersion Int         @default(0)
+  creatorId String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  creator   User          @relation("GameCreator", fields: [creatorId], references: [id], onDelete: Restrict)
+  players   GamePlayer[]
+  questions GameQuestion[]
+}
+
+model GamePlayer {
+  id       String @id @default(cuid())
+  gameId   String
+  userId   String
+  position Int
+  game     Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([gameId, userId])
+  @@unique([gameId, position])
+}
+
+model GameQuestion {
+  id          String         @id @default(cuid())
+  gameId      String
+  variantId   String
+  position    Int
+  questionText String
+  topicText   String
+  difficulty  Int
+  game        Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  variant     QuestionVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  answer      GameAnswer?
+  options     GameQuestionOption[]
+
+  @@unique([gameId, position])
+  @@unique([gameId, variantId])
+}
+
+model GameQuestionOption {
+  id            String       @id @default(cuid())
+  gameQuestionId String
+  position      Int
+  text          String
+  correct       Boolean
+  plausibility  Int
+  gameQuestion  GameQuestion @relation(fields: [gameQuestionId], references: [id], onDelete: Cascade)
+  selections    GameAnswer[]
+
+  @@unique([gameQuestionId, position])
+}
+
+model GameAnswer {
+  id            String       @id @default(cuid())
+  gameQuestionId String      @unique
+  playerId      String
+  selectedOptionId String
+  correct       Boolean
+  points        Int
+  clientEventId String       @unique
+  answeredAt    DateTime     @default(now())
+  gameQuestion  GameQuestion @relation(fields: [gameQuestionId], references: [id], onDelete: Cascade)
+  player        User         @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  selectedOption GameQuestionOption @relation(fields: [selectedOptionId], references: [id], onDelete: Restrict)
+}
