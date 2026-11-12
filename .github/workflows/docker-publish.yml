@@ -42,20 +42,18 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME != '' && format('{0}/synaptiquiz', secrets.DOCKERHUB_USERNAME) || 'local/synaptiquiz' }}
+          images: ${{ secrets.DOCKER_HUB_USERNAME != '' && format('{0}/synaptiquiz', secrets.DOCKER_HUB_USERNAME) || 'local/synaptiquiz' }}
           tags: |
             type=ref,event=branch,suffix=-${{ matrix.database_provider }}
             type=ref,event=tag,suffix=-${{ matrix.database_provider }}
             type=sha,prefix=sha-,suffix=-${{ matrix.database_provider }}
             type=raw,value=latest-${{ matrix.database_provider }},enable={{is_default_branch}}
       - name: Log in to Docker Hub
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
       - name: Build and push
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -64,5 +62,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Skip publish when Docker Hub secrets are missing
-        if: ${{ secrets.DOCKERHUB_USERNAME == '' || secrets.DOCKERHUB_TOKEN == '' }}
-        run: echo "Docker Hub publish skipped; configure DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets."
+        run: echo "Docker Hub publish skipped; configure DOCKER_HUB_USERNAME and DOCKER_HUB_TOKEN secrets."
