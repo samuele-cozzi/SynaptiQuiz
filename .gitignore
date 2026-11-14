@@ -35,6 +35,9 @@ yarn-error.log*
 !.env.example
 /prisma/*.db
 /prisma/*.db-*
+/.deploy/*.db
+/.deploy/*.db-*
+/.deploy/data/
 /data/
 
 # vercel

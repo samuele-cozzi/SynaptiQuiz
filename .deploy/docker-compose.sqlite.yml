@@ -1,14 +1,13 @@
 services:
   webapp:
-    image: ${DOCKERHUB_USERNAME:-synaptiquiz}/synaptiquiz:latest-sqlite
-    build:
-      context: .
-      args:
-        DATABASE_PROVIDER: sqlite
+    image: samuelecozzi/synaptiquiz:latest-sqlite
+    container_name: synaptiquiz_sqlite
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       DATABASE_PROVIDER: sqlite
-      DATABASE_URL: file:/data/synaptiquiz.db
+      DATABASE_URL: ${DATABASE_URL:-file:/data/synaptiquiz.db}
       SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-change-before-deploying}
       ADMIN_USER: ${ADMIN_USER:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-password01}
@@ -18,6 +17,18 @@ services:
       - "${PORT:-3000}:3000"
     volumes:
       - synaptiquiz_sqlite:/data
+    networks:
+      - synaptiquiz_network
 
 volumes:
   synaptiquiz_sqlite:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: .
+
+network:
+  default:
+    name: synaptiquiz_network
+    driver: bridge

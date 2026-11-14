@@ -1,39 +1,76 @@
 services:
   webapp:
-    image: ${DOCKERHUB_USERNAME:-synaptiquiz}/synaptiquiz:latest-postgresql
-    build:
-      context: .
-      args:
-        DATABASE_PROVIDER: postgresql
+    image: samuelecozzi/synaptiquiz:latest-postgresql
+    container_name: synaptiquiz_sqlite
     restart: unless-stopped
     environment:
-      DATABASE_PROVIDER: postgresql
-      DATABASE_URL: postgresql://synaptiquiz:${POSTGRES_PASSWORD:-localpassword}@db:5432/synaptiquiz?schema=public
+      DATABASE_PROVIDER: ${DATABASE_PROVIDER:-sqlite}
+      DATABASE_URL: ${DATABASE_URL}
       SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-change-before-deploying}
       ADMIN_USER: ${ADMIN_USER:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-password01}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     ports:
       - "${PORT:-3000}:3000"
-    depends_on:
-      db:
-        condition: service_healthy
-
-  db:
-    image: postgres:17-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: synaptiquiz
-      POSTGRES_USER: synaptiquiz
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localpassword}
     volumes:
-      - synaptiquiz_postgres:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U synaptiquiz -d synaptiquiz"]
-      interval: 5s
-      timeout: 5s
-      retries: 12
+      - synaptiquiz_sqlite:/data
+    networks:
+      - synaptiquiz_network
+
+  # webapp:
+  #   image: samuelecozzi/synaptiquiz:latest-postgresql
+  #   container_name: synaptiquiz_postgresql
+  #   restart: unless-stopped
+  #   environment:
+  #     DATABASE_PROVIDER: ${DATABASE_PROVIDER:-postgresql}
+  #     DATABASE_URL: ${DATABASE_URL}
+  #     SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-change-before-deploying}
+  #     ADMIN_USER: ${ADMIN_USER:-admin}
+  #     ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+  #     GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+  #     GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+  #   ports:
+  #     - "${PORT:-3000}:3000"
+  #   networks:
+  #     - synaptiquiz_network
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+
+  # db:
+  #   image: postgres:17-alpine
+  #   container_name: synaptiquiz_data
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: synaptiquiz
+  #     POSTGRES_USER: synaptiquiz
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #   volumes:
+  #     - synaptiquiz_postgres:/var/lib/postgresql/data
+  #   networks:
+  #     - synaptiquiz_network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U synaptiquiz -d synaptiquiz"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 12
 
 volumes:
   synaptiquiz_postgres:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./data
+
+  synaptiquiz_sqlite:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: .
+
+networks:
+  synaptiquiz_network:
+    driver: bridge
