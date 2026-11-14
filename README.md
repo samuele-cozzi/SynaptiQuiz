@@ -85,4 +85,4 @@ npx tsc --noEmit
 npm run build
 ```
 
-The GitHub Actions workflow runs these checks on pull requests and publishes versioned Docker Hub images on pushes when `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` repository secrets are configured.
+The GitHub Actions workflow runs these checks on pull requests and publishes one Docker Hub image on pushes when `DOCKER_HUB_USERNAME` and `DOCKER_HUB_TOKEN` repository secrets are configured. Push a SemVer tag such as `v1.2.3` to publish the `1.2.3`, `1.2`, `1`, and `latest` tags.

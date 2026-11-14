@@ -4,8 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-ARG DATABASE_PROVIDER=sqlite
-RUN if [ "$DATABASE_PROVIDER" = "postgresql" ]; then npm run build:postgres; else npm run build; fi
+RUN npm run build
 
 FROM node:22-bookworm-slim AS runtime
 WORKDIR /app

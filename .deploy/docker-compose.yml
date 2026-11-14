@@ -1,6 +1,6 @@
 services:
   webapp:
-    image: samuelecozzi/synaptiquiz:latest-postgresql
+    image: samuelecozzi/synaptiquiz:latest
     container_name: synaptiquiz_sqlite
     restart: unless-stopped
     environment:
@@ -19,7 +19,7 @@ services:
       - synaptiquiz_network
 
   # webapp:
-  #   image: samuelecozzi/synaptiquiz:latest-postgresql
+  #   image: samuelecozzi/synaptiquiz:latest
   #   container_name: synaptiquiz_postgresql
   #   restart: unless-stopped
   #   environment:

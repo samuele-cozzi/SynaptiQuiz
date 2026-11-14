@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { isPrismaUniqueConstraintError, prisma } from "@/lib/db";
 import { hasFairQuestionCount, playerIndexForTurn, pointsForAnswer, sharedRanks } from "@/lib/game-rules";
 
 export const runtime = "nodejs";
@@ -573,7 +573,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof ApiError) return NextResponse.json({ error: error.message }, { status: error.status });
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    if (isPrismaUniqueConstraintError(error)) {
       return NextResponse.json({ error: "That record already exists." }, { status: 409 });
     }
     console.error("SynaptiQuiz API error", error);

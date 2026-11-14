@@ -22,7 +22,7 @@ Start the default file with:
 docker compose up -d
 ```
 
-This currently starts only the web app. Its active service is configured to use SQLite and the PostgreSQL app and database services in the file are commented out. The image tag says `latest-postgresql`, so verify that this image supports the SQLite configuration before using this file for a deployment. This file is not currently a working PostgreSQL setup as checked in.
+This currently starts only the web app. Its active service is configured to use SQLite and the PostgreSQL app and database services in the file are commented out. The `latest` image includes both Prisma clients and selects one at runtime from `DATABASE_PROVIDER`; the Compose file itself must still be configured with a reachable PostgreSQL service and connection string to use PostgreSQL.
 
 Do not start both configurations at the same time: they use the same container name and SQLite volume.
 

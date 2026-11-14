@@ -1,9 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { hash } from "bcryptjs";
-import { prisma } from "@/lib/db";
+import { isPrismaUniqueConstraintError, prisma } from "@/lib/db";
 
 export const sessionCookieName = "synaptiquiz_session";
 const sessionDuration = 60 * 60 * 24 * 30;
@@ -97,7 +96,7 @@ export async function ensureAdmin() {
       data: { username, passwordHash, role: "admin", isActive: true },
     });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    if (isPrismaUniqueConstraintError(error)) {
       const admin = await prisma.user.findFirst({ where: { role: "admin", isActive: true } });
       if (admin) return admin;
     }
